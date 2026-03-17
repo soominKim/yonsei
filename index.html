@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>비주얼 랜딩 페이지 제작 가이드</title>
-    <!-- React & Babel -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config = {
@@ -19,7 +17,8 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Noto Sans KR', 'Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     },
                 }
             }
@@ -27,10 +26,22 @@
     </script>
     <style>
         body { transition: background-color 0.3s, color 0.3s; }
-        .truncate-custom { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
         pre { scrollbar-width: none; -ms-overflow-style: none; }
         pre::-webkit-scrollbar { display: none; }
         main section { position: relative; width: 100%; }
+        .fade-in { animation: fadeIn 0.6s ease-out both; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .tip-card { position: relative; overflow: hidden; }
+        .tip-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; border-radius: 3px; }
+        .tip-card.blue::before { background: #3b82f6; }
+        .tip-card.green::before { background: #22c55e; }
+        .tip-card.orange::before { background: #f97316; }
+        .tip-card.purple::before { background: #a855f7; }
+        .step-number { 
+            width: 28px; height: 28px; border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 900; flex-shrink: 0;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -39,107 +50,254 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        /* ── Tip / Guide Card Component ── */
+        const TipCard = ({ icon, title, children, color = 'blue', lang }) => (
+            <div className={`tip-card ${color} pl-5 pr-4 py-4 rounded-xl bg-zinc-50/80 dark:bg-zinc-900/40 border border-zinc-100 dark:border-zinc-800`}>
+                <div className="flex items-start gap-2.5">
+                    <i data-lucide={icon} className={`w-4 h-4 mt-0.5 shrink-0 ${
+                        color === 'blue' ? 'text-blue-500' : 
+                        color === 'green' ? 'text-green-500' : 
+                        color === 'orange' ? 'text-orange-500' : 'text-purple-500'
+                    }`}></i>
+                    <div>
+                        {title && <p className="text-[11px] font-bold mb-1">{title}</p>}
+                        <div className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">{children}</div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        /* ── Numbered Sub-step Component ── */
+        const SubStep = ({ number, title, children }) => (
+            <div className="flex gap-3 items-start">
+                <div className="step-number bg-zinc-100 dark:bg-zinc-800 text-zinc-500">{number}</div>
+                <div className="flex-1 pt-0.5">
+                    <h4 className="text-[13px] font-bold mb-1">{title}</h4>
+                    <div className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">{children}</div>
+                </div>
+            </div>
+        );
+
         const App = () => {
             const [lang, setLang] = useState('ko');
             const [darkMode, setDarkMode] = useState(false);
             const [copiedIndex, setCopiedIndex] = useState(null);
 
             useEffect(() => {
-                if (window.lucide) {
-                    window.lucide.createIcons();
-                }
+                if (window.lucide) window.lucide.createIcons();
             }, [lang, darkMode, copiedIndex]);
 
             const toggleLang = () => setLang(lang === 'ko' ? 'en' : 'ko');
             const toggleDarkMode = () => setDarkMode(!darkMode);
 
             const copyToClipboard = (text, index) => {
-                const textArea = document.createElement("textarea");
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
                 document.execCommand('copy');
-                document.body.removeChild(textArea);
+                document.body.removeChild(ta);
                 setCopiedIndex(index);
                 setTimeout(() => setCopiedIndex(null), 2000);
             };
 
+            const CopyBtn = ({ text, id, small }) => (
+                <button onClick={() => copyToClipboard(text, id)} 
+                    className={`flex items-center gap-1.5 transition-all active:scale-95 shrink-0 ${
+                        small 
+                        ? 'p-1.5 opacity-20 group-hover:opacity-100 transition-opacity' 
+                        : 'px-3 py-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black rounded-full text-[10px] font-black uppercase'
+                    }`}>
+                    {copiedIndex === id 
+                        ? <i data-lucide="check" className={`${small ? 'w-4 h-4' : 'w-3 h-3'} text-green-500`}></i> 
+                        : <i data-lucide="copy" className={`${small ? 'w-4 h-4' : 'w-3 h-3'}`}></i>}
+                    {!small && (copiedIndex === id ? (lang === 'ko' ? '복사됨!' : 'Copied!') : (lang === 'ko' ? '복사' : 'Copy'))}
+                </button>
+            );
+
+            /* ───────── i18n ───────── */
             const t = {
                 ko: {
                     title: "비주얼 랜딩 페이지 제작 가이드",
                     subtitle: "AI 에셋 생성부터 온라인 배포까지, 코딩 없이 완성하는 원페이지 튜토리얼",
+                    overview: "전체 흐름 미리보기",
+                    overviewDesc: "이 튜토리얼은 6단계로 구성되어 있습니다. AI로 이미지·영상을 만들고, 깃허브에 올려 웹사이트로 공개하는 전체 과정을 안내합니다.",
+                    overviewSteps: [
+                        "AI로 인물 이미지 생성 (Google Flow)",
+                        "다양한 카메라 앵글 베리에이션 제작",
+                        "이미지를 움직이는 영상으로 변환",
+                        "깃허브에 프로젝트 저장소 만들기",
+                        "AI에게 웹페이지 코드 요청하기",
+                        "깃허브 Pages로 전 세계에 공개"
+                    ],
                     step1: "AI 이미지 레퍼런스 생성",
+                    step1Intro: "먼저 랜딩 페이지에 쓸 인물 이미지를 AI로 만듭니다. 구글의 무료 도구인 Flow를 사용합니다.",
+                    step1What: "Flow란?",
+                    step1WhatDesc: "구글이 만든 AI 이미지 생성 도구입니다. 텍스트를 입력하면 이미지를 자동으로 그려줍니다. 무료이며 구글 계정만 있으면 바로 사용할 수 있습니다.",
+                    step1How: "이렇게 해보세요",
+                    step1HowSteps: [
+                        "아래 'Google Flow 바로가기' 링크를 클릭합니다.",
+                        "구글 계정으로 로그인합니다.",
+                        "원하는 인물의 모습을 영어로 묘사합니다. (예: \"A professional Korean woman in a white blazer, studio lighting\")",
+                        "마음에 드는 이미지가 나올 때까지 프롬프트를 조금씩 수정해봅니다.",
+                        "완성된 이미지를 다운로드합니다."
+                    ],
+                    step1Tip: "처음이라 어렵다면, 아래 '모델 이미지 다운로드' 링크에서 미리 만들어둔 레퍼런스 이미지를 받아 사용하세요.",
+                    flowLink: "Google Flow 바로가기",
+                    downloadRef: "모델 이미지 다운로드",
+
                     step2: "이미지 베리에이션 만들기",
+                    step2Intro: "Step 1에서 만든 이미지 한 장을 기반으로, 다양한 카메라 앵글의 베리에이션을 만듭니다. 같은 인물이 여러 각도에서 찍힌 것처럼 보이게 하는 것이 목표입니다.",
+                    step2How: "사용 방법",
+                    step2HowDesc: "Flow에서 Step 1의 이미지를 레퍼런스로 업로드한 뒤, 아래 프롬프트 중 원하는 앵글을 골라 붙여넣으세요. 버튼을 누르면 클립보드에 복사됩니다.",
+                    step2Tip: "모든 앵글을 다 만들 필요 없습니다. 2~3개만 골라서 시도해보세요.",
+
                     step3: "AI 영상 생성 및 편집",
+                    step3Intro: "이제 만든 이미지에 생명을 불어넣습니다. AI 영상 생성 도구를 사용하면 정지 이미지가 자연스럽게 움직이는 짧은 영상이 됩니다.",
+                    step3Tools: "추천 도구",
+                    step3ToolsDesc: "Veo (Google), Kling, Runway 등 이미지→영상 변환을 지원하는 AI 도구를 사용합니다. 이미지를 업로드하고 아래 프롬프트를 붙여넣으면 됩니다.",
+                    step3After: "영상 편집",
+                    step3AfterDesc: "생성된 영상은 CapCut, VLLO 같은 무료 편집 앱으로 길이 조절, 자르기, 합치기 등의 후처리를 합니다. 최종 파일명은 영어로 짧게 지어주세요. (예: pinkswan_small.mp4)",
+
                     step4: "깃허브 레포지토리 구축",
+                    step4Intro: "만든 영상과 이미지를 인터넷에 올리려면 '저장 공간'이 필요합니다. 깃허브(GitHub)가 그 역할을 합니다.",
+                    ghTitle: "깃허브(GitHub)란?",
+                    ghDesc: "파일을 전 세계 어디서든 접속 가능한 주소(URL)로 만들어주는 '코드용 클라우드'입니다. 무료이며 가입만 하면 바로 사용할 수 있습니다.",
+                    ghStep1Title: "레포지토리 생성하기",
+                    ghStep1Desc: "github.com에 로그인한 후, 오른쪽 상단 '+' 버튼 → 'New repository'를 클릭합니다.",
+                    ghStep1Detail: "Repository name은 영어 소문자와 하이픈(-)으로 짧게 짓습니다. (예: my-landing-page) 'Public'을 선택해야 나중에 웹사이트로 공개할 수 있습니다.",
+                    ghAddrTitle: "# 배포 주소 형식",
+                    ghStep2Title: "assets 폴더 업로드",
+                    ghStep2Desc: "영상 파일이 담긴 assets 폴더를 통째로 드래그해서 올립니다.",
+                    ghStep2Detail: "레포지토리 메인 화면에서 'Add file' → 'Upload files'를 누르고, 컴퓨터에서 assets 폴더를 드래그하면 됩니다. 업로드 후 하단의 'Commit changes' 버튼을 꼭 눌러주세요.",
+                    ghIndexTitle: "핵심 파일: index.html",
+                    ghIndexDesc: "브라우저가 웹사이트를 열 때 가장 먼저 찾는 파일입니다. 이름이 틀리면 웹사이트가 열리지 않으니 반드시 소문자로 정확하게 index.html이라고 해주세요.",
+                    ghStructure: "최종 폴더 구조",
+
                     step5: "AI 웹페이지 생성 요청",
+                    step5Intro: "이제 AI에게 웹페이지 코드를 만들어달라고 요청합니다. 아래 '마스터 프롬프트'를 복사해서 ChatGPT나 Claude 같은 AI 채팅에 붙여넣으세요.",
+                    step5How: "이렇게 해보세요",
+                    step5HowSteps: [
+                        "아래 마스터 프롬프트의 '복사' 버튼을 클릭합니다.",
+                        "ChatGPT, Claude 등 AI 채팅창에 붙여넣습니다.",
+                        "Step 1에서 만든 레퍼런스 이미지도 함께 첨부합니다. (톤앤매너 참고용)",
+                        "AI가 생성한 코드를 전체 복사합니다."
+                    ],
+                    step5Tip: "AI가 만든 코드가 마음에 들지 않으면, \"배경색을 바꿔줘\", \"폰트를 더 크게 해줘\" 등 추가 요청을 자유롭게 해보세요.",
+
                     step6: "배포 및 최종 확인",
-                    bonus: "Bonus. 유튜브 영상 임베딩 하기",
+                    step6Intro: "마지막 단계입니다! AI가 만들어준 코드를 깃허브에 올리고, 전 세계 누구나 볼 수 있는 웹사이트로 공개합니다.",
+                    deployStep1: "index.html 파일 만들기",
+                    deployStep1Desc: "깃허브 레포지토리에서 'Add file' → 'Create new file'을 클릭하고, 파일 이름을 index.html로 입력한 뒤, AI가 생성한 코드를 전체 붙여넣고 'Commit changes'를 누릅니다.",
+                    deployStep2: "GitHub Pages 활성화",
+                    deployStep2Desc: "레포지토리 상단 메뉴에서 Settings → 왼쪽 사이드바 Pages를 클릭합니다. 'Branch' 항목을 main으로 선택하고 Save 버튼을 누르세요.",
+                    deployStep3: "웹사이트 확인",
+                    deployStep3Desc: "1~2분 뒤 https://{사용자명}.github.io/{레포이름}/ 주소로 접속하면 내 웹사이트가 열립니다!",
+                    deployPreview: "배포 결과 미리보기",
+                    deployTip: "수정하고 싶은 부분이 있다면 깃허브에서 index.html 파일을 열고 연필(✏️) 아이콘을 눌러 직접 수정할 수 있습니다.",
+
+                    bonus: "Bonus. 유튜브 영상 임베딩",
                     bonusDesc: "랜딩 페이지에 유튜브 영상을 직접 넣어 풍부한 시각 정보를 제공할 수 있습니다.",
+                    bonusHow: "유튜브 영상의 '공유' 버튼 → '퍼가기'를 누르면 나오는 iframe 코드를 복사해서 HTML에 넣으면 됩니다. AI에게 \"이 유튜브 링크를 페이지에 넣어줘\"라고 요청해도 됩니다.",
+
                     demoHuman: "Your Demo Human",
                     introBook: "Introduce AI:Tionship",
                     bookTitle: "2026년 신간 『AI션십』이 나왔습니다!",
                     bookDesc: "기술서는 아닙니다. 엄밀히 트렌드서도 아닙니다. 사용자와 AI 사이의 관계와 인터랙션 그리고 서비스에 대한 책입니다.",
                     getItOn: "Get it on",
-                    flowLink: "구글 Flow 바로가기",
-                    downloadRef: "모델 이미지 다운로드",
-                    copy: "복사",
-                    copied: "복사됨!",
-                    videoPath: "assets/pinkswan_small.mp4",
-                    ghTitle: "깃허브(GitHub)란 무엇인가요?",
-                    ghDesc: "파일을 전 세계 어디서든 접속 가능한 주소(URL)로 만들어주는 '코드용 클라우드'입니다.",
-                    ghStep1Title: "레포지토리 생성",
-                    ghStep1Desc: "내 프로젝트의 저장소 이름을 영어로 만듭니다.",
-                    ghAddrTitle: "# 배포 주소 형식",
-                    ghStep2Title: "assets 폴더 업로드",
-                    ghStep2Desc: "영상이 담긴 폴더를 통째로 드래그해서 올립니다.",
-                    ghIndexTitle: "대문 파일: index.html",
-                    ghIndexDesc: "브라우저가 가장 먼저 찾는 파일입니다. 이름이 틀리면 웹사이트가 열리지 않습니다.",
-                    deployStep1: "index.html 생성",
-                    deployStep1Desc: "AI가 준 코드를 복사해 깃허브의 index.html에 붙여넣습니다.",
-                    deployStep2: "GitHub Pages 활성화",
-                    deployStep2Desc: "[Settings] > [Pages]에서 Branch를 main으로 저장하세요.",
-                    deployPreview: "깃허브 배포 결과 (미리보기)"
                 },
                 en: {
                     title: "Visual Landing Page Guide",
-                    subtitle: "Complete one-page tutorial from AI generation to online deployment",
+                    subtitle: "Complete one-page tutorial: from AI asset creation to online deployment — no coding required",
+                    overview: "Overview",
+                    overviewDesc: "This tutorial has 6 steps. It walks you through creating images and videos with AI, then publishing them as a website via GitHub.",
+                    overviewSteps: [
+                        "Generate a character image with AI (Google Flow)",
+                        "Create camera angle variations",
+                        "Turn images into short videos",
+                        "Set up a GitHub repository",
+                        "Ask AI to generate webpage code",
+                        "Publish to the world via GitHub Pages"
+                    ],
                     step1: "AI Image Generation",
+                    step1Intro: "First, we'll create a character image for the landing page using AI. We'll use Google's free tool called Flow.",
+                    step1What: "What is Flow?",
+                    step1WhatDesc: "Flow is Google's AI image generation tool. You type a description and it creates images automatically. It's free — all you need is a Google account.",
+                    step1How: "How to do it",
+                    step1HowSteps: [
+                        "Click the 'Go to Google Flow' link below.",
+                        "Sign in with your Google account.",
+                        "Describe the person you want in English. (e.g., \"A professional Korean woman in a white blazer, studio lighting\")",
+                        "Tweak the prompt until you get an image you like.",
+                        "Download the final image."
+                    ],
+                    step1Tip: "If this feels hard, download the pre-made reference image from the link below and use it directly.",
+                    flowLink: "Go to Google Flow",
+                    downloadRef: "Download Reference Image",
+
                     step2: "Image Variations",
+                    step2Intro: "Using the image from Step 1 as a reference, create variations from different camera angles — making it look like the same person was photographed from multiple perspectives.",
+                    step2How: "How to use",
+                    step2HowDesc: "Upload your Step 1 image as a reference in Flow, then pick an angle prompt below and paste it in. Click the button to copy.",
+                    step2Tip: "You don't need all angles. Pick 2–3 that interest you.",
+
                     step3: "AI Video & Editing",
+                    step3Intro: "Now let's bring the images to life. AI video tools can turn a still image into a short, naturally moving clip.",
+                    step3Tools: "Recommended Tools",
+                    step3ToolsDesc: "Use AI tools that support image-to-video: Veo (Google), Kling, Runway, etc. Upload your image and paste the prompt below.",
+                    step3After: "Video Editing",
+                    step3AfterDesc: "Use free editing apps like CapCut or VLLO to trim, cut, and merge clips. Name the final file in short English. (e.g., pinkswan_small.mp4)",
+
                     step4: "GitHub Repository Setup",
+                    step4Intro: "To put your videos and images online, you need a place to store them. GitHub does exactly that.",
+                    ghTitle: "What is GitHub?",
+                    ghDesc: "It's a 'cloud for code' that turns your files into a globally accessible URL. It's free — just sign up.",
+                    ghStep1Title: "Create a Repository",
+                    ghStep1Desc: "Sign in at github.com, then click the '+' button (top right) → 'New repository'.",
+                    ghStep1Detail: "Use lowercase English and hyphens for the name. (e.g., my-landing-page) Choose 'Public' so it can be published as a website later.",
+                    ghAddrTitle: "# Repository Address Format",
+                    ghStep2Title: "Upload assets folder",
+                    ghStep2Desc: "Drag and drop the entire folder containing your video files.",
+                    ghStep2Detail: "On your repo's main page, click 'Add file' → 'Upload files', then drag the assets folder from your computer. Don't forget to click 'Commit changes' at the bottom.",
+                    ghIndexTitle: "Key File: index.html",
+                    ghIndexDesc: "This is the very first file a browser looks for when opening a website. The name must be exactly index.html (lowercase) or the site won't load.",
+                    ghStructure: "Final Folder Structure",
+
                     step5: "AI Web Generation Prompt",
+                    step5Intro: "Now ask AI to generate the webpage code. Copy the 'Master Prompt' below and paste it into ChatGPT, Claude, or any AI chat.",
+                    step5How: "How to do it",
+                    step5HowSteps: [
+                        "Click the 'Copy' button on the Master Prompt below.",
+                        "Paste it into an AI chat (ChatGPT, Claude, etc.).",
+                        "Also attach the reference image from Step 1 (for tone & style reference).",
+                        "Copy all of the code the AI generates."
+                    ],
+                    step5Tip: "If the result isn't quite right, ask follow-ups like \"change the background color\" or \"make the font bigger\".",
+
                     step6: "Deployment & Final Check",
+                    step6Intro: "Final step! Upload the AI-generated code to GitHub and publish it as a website anyone in the world can visit.",
+                    deployStep1: "Create index.html",
+                    deployStep1Desc: "In your GitHub repo, click 'Add file' → 'Create new file'. Name it index.html, paste the full AI-generated code, and click 'Commit changes'.",
+                    deployStep2: "Activate GitHub Pages",
+                    deployStep2Desc: "Go to your repo's Settings → Pages (left sidebar). Set Branch to 'main' and click Save.",
+                    deployStep3: "Check your website",
+                    deployStep3Desc: "After 1–2 minutes, visit https://{username}.github.io/{repo-name}/ to see your live site!",
+                    deployPreview: "Deployment Preview",
+                    deployTip: "Want to make changes? Open index.html on GitHub and click the pencil (✏️) icon to edit directly.",
+
                     bonus: "Bonus. Embedding YouTube Videos",
                     bonusDesc: "You can enrich your landing page by directly embedding YouTube videos.",
+                    bonusHow: "Click 'Share' on a YouTube video → 'Embed' → copy the iframe code and paste it into your HTML. Or simply ask AI: \"Add this YouTube link to the page.\"",
+
                     demoHuman: "Your Demo Human",
                     introBook: "Introduce AI:Tionship",
                     bookTitle: "New Book 『AI:Tionship』 is out!",
-                    bookDesc: "This is not a technical manual or a trend report. It's a book about relationships, interactions, and services between humans and AI.",
+                    bookDesc: "Not a tech manual. Not a trend report. A book about the relationships, interactions, and services between humans and AI.",
                     getItOn: "Get it on",
-                    flowLink: "Go to Google Flow",
-                    downloadRef: "Download Model Image",
-                    copy: "Copy",
-                    copied: "Copied!",
-                    videoPath: "assets/pinkswan_small.mp4",
-                    ghTitle: "What is GitHub?",
-                    ghDesc: "It is a 'Cloud for Code' that turns your files into a globally accessible URL.",
-                    ghStep1Title: "Create Repository",
-                    ghStep1Desc: "Create a storage for your project with an English name.",
-                    ghAddrTitle: "# Repository Address Format",
-                    ghStep2Title: "Upload assets folder",
-                    ghStep2Desc: "Drag and drop the entire folder containing your videos.",
-                    ghIndexTitle: "Main File: index.html",
-                    ghIndexDesc: "The very first file a browser looks for. If the name is wrong, the site won't open.",
-                    deployStep1: "Create index.html",
-                    deployStep1Desc: "Copy the AI-generated code and paste it into index.html on GitHub.",
-                    deployStep2: "Activate GitHub Pages",
-                    deployStep2Desc: "Go to [Settings] > [Pages] and save the Branch as 'main'.",
-                    deployPreview: "GitHub Deployment Result (Preview)"
                 }
             };
 
-            const content = t[lang];
+            const c = t[lang];
 
             const cameraPrompts = [
                 { label: lang === 'ko' ? "풀샷" : "Full", prompt: "Full body shot of the character, standing in the center of the frame, showing the entire environment, cinematic wide angle, ultra-detailed, 8k" },
@@ -147,10 +305,10 @@
                 { label: lang === 'ko' ? "클로즈업" : "Close", prompt: "Close-up shot of the character's face focusing on the eyes and expression, shallow depth of field, blurred background, highly detailed beauty editorial" },
                 { label: lang === 'ko' ? "로앵글" : "Low", prompt: "Low angle shot, looking up at the character, elegant and powerful presence, elongated silhouette, dramatic yet clean lighting, cinematic fashion campaign style" },
                 { label: lang === 'ko' ? "더치 틸트" : "Tilt", prompt: "Dutch tilt shot, tilted camera angle, dynamic and creative composition, energetic lighting, avant-garde style, minimalist white interior, cinematic editorial lighting" },
-                { label: lang === 'ko' ? "사이드" : "Side", prompt: "Side profile shot of the character, looking towards the side of the frame, sharp silhouette, cinematic side lighting.minimalist white interior, cinematic editorial lighting" },
+                { label: lang === 'ko' ? "사이드" : "Side", prompt: "Side profile shot of the character, looking towards the side of the frame, sharp silhouette, cinematic side lighting, minimalist white interior, cinematic editorial lighting" },
                 { label: "3/4", prompt: "Three-quarter angle shot of the character, slightly turned toward the camera, confident gaze, sculpted lighting, clean white interior, elegant beauty editorial aesthetic" },
                 { label: lang === 'ko' ? "오버더숄더" : "OTS", prompt: "Over-the-shoulder shot of the character, highlighting smooth hair texture and elegant shoulder line, subtle turn toward the camera, clean white minimalist room, soft editorial lighting" },
-                { label: "POV", prompt: "Point of view shot, POV, looking though the character’s eyes at [screen/object], first person perspective, immersive experience." }
+                { label: "POV", prompt: "Point of view shot, POV, looking through the character's eyes at [screen/object], first person perspective, immersive experience." }
             ];
 
             const videoPrompts = [
@@ -170,7 +328,8 @@
             return (
                 <div className={darkMode ? 'dark' : ''}>
                     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-500 pb-20">
-                        {/* Navigation */}
+                        
+                        {/* ── Navigation ── */}
                         <nav className="fixed top-0 w-full z-[100] border-b border-zinc-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm">
                             <div className="max-w-3xl mx-auto px-6 h-12 flex items-center justify-between">
                                 <div className="font-bold tracking-tighter text-xs flex items-center gap-2 uppercase">
@@ -187,33 +346,75 @@
                             </div>
                         </nav>
 
-                        {/* Hero Header */}
-                        <header className="pt-24 pb-12 px-6 text-center max-w-2xl mx-auto">
-                            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tighter mb-3">{content.title}</h1>
-                            <p className="text-zinc-500 text-sm leading-relaxed max-w-sm mx-auto">{content.subtitle}</p>
+                        {/* ── Hero ── */}
+                        <header className="pt-24 pb-8 px-6 text-center max-w-2xl mx-auto">
+                            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tighter mb-3">{c.title}</h1>
+                            <p className="text-zinc-500 text-sm leading-relaxed max-w-md mx-auto">{c.subtitle}</p>
                         </header>
 
                         <main className="max-w-2xl mx-auto px-6 space-y-20">
-                            {/* Step 1 */}
+
+                            {/* ── Overview ── */}
                             <section className="space-y-4">
-                                <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-                                    Step 1 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step1}
+                                <h2 className="text-sm font-bold flex items-center gap-2">
+                                    <i data-lucide="map" className="w-4 h-4 text-blue-500"></i> {c.overview}
+                                </h2>
+                                <p className="text-[11px] text-zinc-500 leading-relaxed">{c.overviewDesc}</p>
+                                <div className="grid gap-1.5">
+                                    {c.overviewSteps.map((step, i) => (
+                                        <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-zinc-50/80 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800">
+                                            <span className="step-number bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[10px]">{i + 1}</span>
+                                            <span className="text-[11px] font-medium">{step}</span>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="flex gap-4">
+                            </section>
+
+                            {/* ════════ STEP 1 ════════ */}
+                            <section className="space-y-5">
+                                <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
+                                    Step 1 <i data-lucide="chevron-right" className="w-3 h-3"></i> {c.step1}
+                                </div>
+                                <p className="text-[12px] text-zinc-600 dark:text-zinc-400 leading-relaxed">{c.step1Intro}</p>
+
+                                <TipCard icon="info" title={c.step1What} color="blue">
+                                    {c.step1WhatDesc}
+                                </TipCard>
+
+                                <div className="space-y-3">
+                                    <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">{c.step1How}</p>
+                                    <div className="space-y-2.5">
+                                        {c.step1HowSteps.map((s, i) => (
+                                            <SubStep key={i} number={i + 1} title={s}>{null}</SubStep>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <TipCard icon="lightbulb" color="green">
+                                    {c.step1Tip}
+                                </TipCard>
+
+                                <div className="flex flex-wrap gap-3">
                                     <a href="https://labs.google/fx/ko/tools/flow" target="_blank" className="text-xs font-bold border-b border-zinc-900 dark:border-white pb-1 flex items-center gap-1.5">
-                                        {content.flowLink} <i data-lucide="external-link" className="w-3 h-3"></i>
+                                        {c.flowLink} <i data-lucide="external-link" className="w-3 h-3"></i>
                                     </a>
                                     <a href="https://github.com/soominKim/yonsei/blob/main/assets/model1.png" target="_blank" className="text-xs font-bold border-b border-zinc-900 dark:border-white pb-1 flex items-center gap-1.5">
-                                        {content.downloadRef} <i data-lucide="download" className="w-3 h-3"></i>
+                                        {c.downloadRef} <i data-lucide="download" className="w-3 h-3"></i>
                                     </a>
                                 </div>
                             </section>
 
-                            {/* Step 2 */}
-                            <section className="space-y-4">
+                            {/* ════════ STEP 2 ════════ */}
+                            <section className="space-y-5">
                                 <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-                                    Step 2 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step2}
+                                    Step 2 <i data-lucide="chevron-right" className="w-3 h-3"></i> {c.step2}
                                 </div>
+                                <p className="text-[12px] text-zinc-600 dark:text-zinc-400 leading-relaxed">{c.step2Intro}</p>
+
+                                <TipCard icon="camera" title={c.step2How} color="purple">
+                                    {c.step2HowDesc}
+                                </TipCard>
+
                                 <div className="grid gap-1.5">
                                     {cameraPrompts.map((item, idx) => (
                                         <div key={idx} className="group p-2.5 rounded-xl border border-zinc-100 dark:border-zinc-800 flex items-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors overflow-hidden">
@@ -221,164 +422,212 @@
                                             <div className="flex-1 min-w-0 mx-3">
                                                 <p className="text-[11px] text-zinc-500 italic truncate">"{item.prompt}"</p>
                                             </div>
-                                            <button onClick={() => copyToClipboard(item.prompt, `cam-${idx}`)} className="p-1.5 opacity-20 group-hover:opacity-100 transition-opacity shrink-0 ml-auto">
-                                                {copiedIndex === `cam-${idx}` ? <i data-lucide="check" className="w-4 h-4 text-green-500"></i> : <i data-lucide="copy" className="w-4 h-4"></i>}
-                                            </button>
+                                            <CopyBtn text={item.prompt} id={`cam-${idx}`} small />
                                         </div>
                                     ))}
                                 </div>
+
+                                <TipCard icon="lightbulb" color="green">
+                                    {c.step2Tip}
+                                </TipCard>
                             </section>
 
-                            {/* Step 3 */}
-                            <section className="space-y-4">
+                            {/* ════════ STEP 3 ════════ */}
+                            <section className="space-y-5">
                                 <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-                                    Step 3 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step3}
+                                    Step 3 <i data-lucide="chevron-right" className="w-3 h-3"></i> {c.step3}
                                 </div>
+                                <p className="text-[12px] text-zinc-600 dark:text-zinc-400 leading-relaxed">{c.step3Intro}</p>
+
+                                <TipCard icon="video" title={c.step3Tools} color="blue">
+                                    {c.step3ToolsDesc}
+                                </TipCard>
+
                                 <div className="space-y-2">
                                     {videoPrompts.map((item, idx) => (
                                         <div key={idx} className="p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/20 space-y-2">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-[10px] font-black text-blue-500 uppercase">{item.label}</span>
-                                                <button onClick={() => copyToClipboard(item.prompt, `vid-${idx}`)} className="text-zinc-400 hover:text-zinc-900 transition-colors">
-                                                    {copiedIndex === `vid-${idx}` ? <i data-lucide="check" className="w-4 h-4 text-green-500"></i> : <i data-lucide="copy" className="w-4 h-4"></i>}
-                                                </button>
+                                                <CopyBtn text={item.prompt} id={`vid-${idx}`} small />
                                             </div>
                                             <p className="text-[11px] text-zinc-500 italic leading-relaxed">"{item.prompt}"</p>
                                         </div>
                                     ))}
                                 </div>
+
+                                <TipCard icon="scissors" title={c.step3After} color="orange">
+                                    {c.step3AfterDesc}
+                                </TipCard>
                             </section>
 
-                            {/* Step 4: GitHub Repository (Refactored to cards) */}
-                            <section className="space-y-6">
+                            {/* ════════ STEP 4 ════════ */}
+                            <section className="space-y-5">
                                 <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-                                    Step 4 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step4}
+                                    Step 4 <i data-lucide="chevron-right" className="w-3 h-3"></i> {c.step4}
                                 </div>
-                                <div className="space-y-4">
-                                    <div className="p-5 rounded-2xl bg-blue-50/20 dark:bg-blue-900/10 border border-blue-100/50 dark:border-blue-900/20">
-                                        <h3 className="text-xs font-bold flex items-center gap-2 mb-2 text-blue-700 dark:text-blue-400">
-                                            <i data-lucide="hard-drive" className="w-4 h-4"></i> {content.ghTitle}
-                                        </h3>
-                                        <p className="text-[10px] text-zinc-500 leading-relaxed">{content.ghDesc}</p>
-                                    </div>
+                                <p className="text-[12px] text-zinc-600 dark:text-zinc-400 leading-relaxed">{c.step4Intro}</p>
 
-                                    {/* Repository Creation Box */}
-                                    <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800">
-                                        <div className="flex gap-4 items-start">
-                                            <i data-lucide="plus-circle" className="w-5 h-5 text-purple-500 shrink-0 mt-0.5"></i>
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="text-sm font-bold mb-1">{content.ghStep1Title}</h4>
-                                                <p className="text-zinc-500 text-xs mb-3">{content.ghStep1Desc}</p>
-                                                <div className="p-2.5 rounded-lg bg-white/50 dark:bg-zinc-950/50 text-[10px] font-mono border border-zinc-100 dark:border-zinc-700 text-zinc-400">
-                                                    https://github.com/{"{username}"}/{"{repo}"}.git
-                                                </div>
-                                            </div>
+                                <div className="p-5 rounded-2xl bg-blue-50/30 dark:bg-blue-900/10 border border-blue-100/50 dark:border-blue-900/20">
+                                    <h3 className="text-xs font-bold flex items-center gap-2 mb-2 text-blue-700 dark:text-blue-400">
+                                        <i data-lucide="hard-drive" className="w-4 h-4"></i> {c.ghTitle}
+                                    </h3>
+                                    <p className="text-[11px] text-zinc-500 leading-relaxed">{c.ghDesc}</p>
+                                </div>
+
+                                {/* Repo creation */}
+                                <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 space-y-3">
+                                    <div className="flex gap-4 items-start">
+                                        <i data-lucide="plus-circle" className="w-5 h-5 text-purple-500 shrink-0 mt-0.5"></i>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-sm font-bold mb-1">{c.ghStep1Title}</h4>
+                                            <p className="text-zinc-500 text-xs mb-1">{c.ghStep1Desc}</p>
+                                            <p className="text-zinc-400 text-[11px] leading-relaxed">{c.ghStep1Detail}</p>
                                         </div>
                                     </div>
+                                    <div className="p-2.5 rounded-lg bg-white/50 dark:bg-zinc-950/50 text-[10px] font-mono border border-zinc-100 dark:border-zinc-700 text-zinc-400 ml-9">
+                                        https://github.com/{"{username}"}/{"{repo}"}.git
+                                    </div>
+                                </div>
 
-                                    <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800">
-                                        <div className="flex gap-4 items-start">
-                                            <i data-lucide="folder-up" className="w-5 h-5 text-zinc-400 shrink-0 mt-0.5"></i>
-                                            <div className="flex-1">
-                                                <h4 className="text-sm font-bold mb-1">{content.ghStep2Title}</h4>
-                                                <p className="text-zinc-500 text-xs">{content.ghStep2Desc}</p>
-                                            </div>
+                                {/* Assets upload */}
+                                <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800">
+                                    <div className="flex gap-4 items-start">
+                                        <i data-lucide="folder-up" className="w-5 h-5 text-zinc-400 shrink-0 mt-0.5"></i>
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-bold mb-1">{c.ghStep2Title}</h4>
+                                            <p className="text-zinc-500 text-xs mb-1">{c.ghStep2Desc}</p>
+                                            <p className="text-zinc-400 text-[11px] leading-relaxed">{c.ghStep2Detail}</p>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div className="p-5 rounded-2xl bg-orange-50/30 dark:bg-orange-900/10 border border-orange-100/50 dark:border-orange-900/20">
-                                        <div className="flex gap-4 items-start">
-                                            <i data-lucide="file-code" className="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
-                                            <div className="flex-1">
-                                                <h4 className="text-sm font-bold mb-1 text-orange-700 dark:text-orange-400">{content.ghIndexTitle}</h4>
-                                                <p className="text-zinc-500 text-xs">{content.ghIndexDesc}</p>
-                                            </div>
+                                {/* index.html warning */}
+                                <div className="p-5 rounded-2xl bg-orange-50/30 dark:bg-orange-900/10 border border-orange-100/50 dark:border-orange-900/20">
+                                    <div className="flex gap-4 items-start">
+                                        <i data-lucide="file-code" className="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-bold mb-1 text-orange-700 dark:text-orange-400">{c.ghIndexTitle}</h4>
+                                            <p className="text-zinc-500 text-xs">{c.ghIndexDesc}</p>
                                         </div>
                                     </div>
+                                </div>
+
+                                {/* Folder structure */}
+                                <div className="p-4 rounded-xl bg-zinc-950 dark:bg-zinc-900/50 border border-zinc-800">
+                                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">{c.ghStructure}</p>
+                                    <pre className="text-[11px] text-green-400 font-mono leading-relaxed">{`my-landing-page/
+├── assets/
+│   └── pinkswan_small.mp4
+├── aitionship1.jpg
+└── index.html          ← ${lang === 'ko' ? '이 파일이 웹사이트의 시작점' : 'This file is the entry point'}`}</pre>
                                 </div>
                             </section>
 
-                            {/* Step 5: Updated Master Prompt */}
-                            <section className="space-y-4">
+                            {/* ════════ STEP 5 ════════ */}
+                            <section className="space-y-5">
                                 <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-                                    Step 5 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step5}
+                                    Step 5 <i data-lucide="chevron-right" className="w-3 h-3"></i> {c.step5}
                                 </div>
+                                <p className="text-[12px] text-zinc-600 dark:text-zinc-400 leading-relaxed">{c.step5Intro}</p>
+
+                                <div className="space-y-3">
+                                    <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">{c.step5How}</p>
+                                    <div className="space-y-2.5">
+                                        {c.step5HowSteps.map((s, i) => (
+                                            <SubStep key={i} number={i + 1} title={s}>{null}</SubStep>
+                                        ))}
+                                    </div>
+                                </div>
+
                                 <div className="p-6 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/20">
                                     <div className="flex justify-between items-center mb-4">
                                         <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Master Prompt</span>
-                                        <button onClick={() => copyToClipboard(webDesignPrompt, 'web-prompt')} className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black rounded-full text-[10px] font-black uppercase transition-transform active:scale-95">
-                                            {copiedIndex === 'web-prompt' ? <i data-lucide="check" className="w-3 h-3"></i> : <i data-lucide="copy" className="w-3 h-3"></i>}
-                                            {copiedIndex === 'web-prompt' ? content.copied : content.copy}
-                                        </button>
+                                        <CopyBtn text={webDesignPrompt} id="web-prompt" />
                                     </div>
                                     <pre className="text-[11px] text-zinc-500 dark:text-zinc-400 whitespace-pre-wrap leading-relaxed font-sans italic overflow-x-hidden">
                                         {webDesignPrompt}
                                     </pre>
                                 </div>
+
+                                <TipCard icon="lightbulb" color="green">
+                                    {c.step5Tip}
+                                </TipCard>
                             </section>
 
-                            {/* Step 6 */}
-                            <section className="space-y-6">
+                            {/* ════════ STEP 6 ════════ */}
+                            <section className="space-y-5">
                                 <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-                                    Step 6 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step6}
+                                    Step 6 <i data-lucide="chevron-right" className="w-3 h-3"></i> {c.step6}
                                 </div>
-                                <div className="space-y-4 text-sm">
-                                    <div className="flex gap-4 items-start">
-                                        <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-[11px] font-bold">1</div>
-                                        <div className="flex-1 pt-1">
-                                            <h4 className="font-bold mb-0.5 text-sm">{content.deployStep1}</h4>
-                                            <p className="text-zinc-500 text-xs">{content.deployStep1Desc}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-start">
-                                        <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-[11px] font-bold">2</div>
-                                        <div className="flex-1 pt-1">
-                                            <h4 className="font-bold mb-0.5 text-sm">{content.deployStep2}</h4>
-                                            <p className="text-zinc-500 text-xs">{content.deployStep2Desc}</p>
-                                        </div>
-                                    </div>
+                                <p className="text-[12px] text-zinc-600 dark:text-zinc-400 leading-relaxed">{c.step6Intro}</p>
 
-                                    <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 mt-8">
-                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2 mb-4">
-                                            <i data-lucide="globe" className="w-4 h-4 text-blue-500"></i> {content.deployPreview}
-                                        </h4>
-                                        <div className="aspect-video rounded-xl overflow-hidden bg-white dark:bg-black shadow-inner relative border border-zinc-100 dark:border-zinc-800">
-                                            <video 
-                                                src="assets/pinkswan_small.mp4" 
-                                                autoPlay loop muted 
-                                                className="w-full h-full object-cover" 
-                                                onError={(e) => {
-                                                    e.target.style.display = 'none';
-                                                    e.target.parentElement.innerHTML = `
-                                                        <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-30">
-                                                            <p class="text-[11px] font-bold uppercase tracking-widest">pinkswan_small.mp4</p>
-                                                            <p class="text-[10px] mt-1 italic font-medium leading-tight text-zinc-500">배포 전에는 보이지 않습니다.<br/>깃허브에 영상을 올린 후 확인하세요.</p>
-                                                        </div>
-                                                    `;
-                                                }}
-                                            />
-                                        </div>
+                                <div className="space-y-4">
+                                    <SubStep number="1" title={c.deployStep1}>
+                                        <p>{c.deployStep1Desc}</p>
+                                    </SubStep>
+                                    <SubStep number="2" title={c.deployStep2}>
+                                        <p>{c.deployStep2Desc}</p>
+                                    </SubStep>
+                                    <SubStep number="3" title={c.deployStep3}>
+                                        <p>{c.deployStep3Desc}</p>
+                                    </SubStep>
+                                </div>
+
+                                {/* Deploy address example */}
+                                <div className="p-3 rounded-lg bg-zinc-950 dark:bg-zinc-900/50 border border-zinc-800">
+                                    <pre className="text-[11px] font-mono text-green-400">https://{"{username}"}.github.io/{"{repo-name}"}/</pre>
+                                </div>
+
+                                <TipCard icon="pencil" color="orange">
+                                    {c.deployTip}
+                                </TipCard>
+
+                                {/* Video preview */}
+                                <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 mt-4">
+                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2 mb-4">
+                                        <i data-lucide="globe" className="w-4 h-4 text-blue-500"></i> {c.deployPreview}
+                                    </h4>
+                                    <div className="aspect-video rounded-xl overflow-hidden bg-white dark:bg-black shadow-inner relative border border-zinc-100 dark:border-zinc-800">
+                                        <video 
+                                            src="assets/pinkswan_small.mp4" 
+                                            autoPlay loop muted playsInline
+                                            className="w-full h-full object-cover" 
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                e.target.parentElement.innerHTML = `
+                                                    <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-30">
+                                                        <p class="text-[11px] font-bold uppercase tracking-widest">pinkswan_small.mp4</p>
+                                                        <p class="text-[10px] mt-1 italic font-medium leading-tight text-zinc-500">${lang === 'ko' ? '배포 전에는 보이지 않습니다. 깃허브에 영상을 올린 후 확인하세요.' : 'Not visible before deployment. Upload the video to GitHub first.'}</p>
+                                                    </div>
+                                                `;
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             </section>
 
-                            {/* Bonus YouTube */}
-                            <section className="pt-12 border-t border-zinc-100 dark:border-zinc-800 space-y-8">
+                            {/* ════════ BONUS ════════ */}
+                            <section className="pt-12 border-t border-zinc-100 dark:border-zinc-800 space-y-6">
                                 <div className="text-center space-y-2">
                                     <h2 className="text-xl font-black tracking-tighter flex items-center justify-center gap-2">
-                                        <i data-lucide="youtube" className="text-red-500 w-6 h-6"></i> {content.bonus}
+                                        <i data-lucide="youtube" className="text-red-500 w-6 h-6"></i> {c.bonus}
                                     </h2>
-                                    <p className="text-[10px] text-zinc-500 mx-auto max-w-xs leading-relaxed">{content.bonusDesc}</p>
+                                    <p className="text-[11px] text-zinc-500 mx-auto max-w-xs leading-relaxed">{c.bonusDesc}</p>
                                 </div>
+
+                                <TipCard icon="code" color="purple">
+                                    {c.bonusHow}
+                                </TipCard>
+
                                 <div className="aspect-video rounded-2xl overflow-hidden shadow-xl border border-zinc-100 dark:border-zinc-800 bg-black">
                                     <iframe className="w-full h-full" src="https://www.youtube.com/embed/65B_GoV-qoE" title="YouTube tutorial" frameBorder="0" allowFullScreen></iframe>
                                 </div>
                             </section>
 
-                            {/* Your Demo Human */}
+                            {/* ════════ Your Demo Human ════════ */}
                             <section id="your-demo-human" className="pt-12 border-t border-zinc-100 dark:border-zinc-800">
                                 <div className="rounded-2xl p-6 md:p-10 bg-zinc-50/50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800">
-                                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 mb-6">{content.demoHuman}</h2>
+                                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 mb-6">{c.demoHuman}</h2>
                                     <div className="flex flex-col md:flex-row gap-8 items-start">
                                         <div className="flex-1 w-full md:w-auto">
                                             <div className="flex items-center gap-3 mb-4">
@@ -407,13 +656,13 @@
                                 </div>
                             </section>
 
-                            {/* Introduce AI:Tionship - Spacing & Buttons Adjusted */}
+                            {/* ════════ AI:Tionship ════════ */}
                             <section id="ai-tionship" className="pt-6 pb-20 space-y-10">
                                 <div className="flex flex-col md:flex-row gap-10 items-start">
                                     <div className="flex-1 space-y-6">
                                         <div>
-                                            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 mb-4">{content.introBook}</h2>
-                                            <h3 className="text-xl font-bold leading-tight">{content.bookTitle}</h3>
+                                            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 mb-4">{c.introBook}</h2>
+                                            <h3 className="text-xl font-bold leading-tight">{c.bookTitle}</h3>
                                         </div>
                                         
                                         <div className="group inline-block relative">
@@ -428,11 +677,10 @@
                                             <div className="absolute -bottom-3 -right-3 w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center font-black text-[9px] shadow-xl rotate-12 group-hover:scale-110 transition-transform">NEW</div>
                                         </div>
 
-                                        <p className="text-[12px] leading-relaxed mb-6 dark:text-zinc-400 text-zinc-600">{content.bookDesc}</p>
+                                        <p className="text-[12px] leading-relaxed mb-6 dark:text-zinc-400 text-zinc-600">{c.bookDesc}</p>
                                         
                                         <div className="space-y-4">
-                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-300 dark:text-zinc-600">{content.getItOn}</h4>
-                                            {/* Button sizing refined to fit one row and avoid overlap */}
+                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-300 dark:text-zinc-600">{c.getItOn}</h4>
                                             <div className="flex flex-wrap gap-1.5 pb-2">
                                                 <a href="https://product.kyobobook.co.kr/detail/S000219080971" target="_blank" className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 transition-all hover:scale-[1.02] shrink-0">
                                                     <i data-lucide="shopping-cart" className="text-orange-500 w-3 h-3"></i> <span className="text-[10px] font-bold">교보문고</span>
