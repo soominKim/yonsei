@@ -343,20 +343,20 @@
                                             <i data-lucide="globe" className="w-4 h-4 text-blue-500"></i> {content.deployPreview}
                                         </h4>
                                         <div className="aspect-video rounded-xl overflow-hidden bg-white dark:bg-black shadow-inner relative border border-zinc-100 dark:border-zinc-800">
-                                            <video 
-                                                src="assets/pinkswan_small.mp4" 
-                                                autoPlay loop muted 
-                                                className="w-full h-full object-cover" 
-                                                onError={(e) => {
-                                                    e.target.style.display = 'none';
-                                                    e.target.parentElement.innerHTML = `
-                                                        <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-30">
-                                                            <p class="text-[11px] font-bold uppercase tracking-widest">pinkswan_small.mp4</p>
-                                                            <p class="text-[10px] mt-1 italic font-medium leading-tight text-zinc-500">배포 전에는 보이지 않습니다.<br/>깃허브에 영상을 올린 후 확인하세요.</p>
-                                                        </div>
-                                                    `;
-                                                }}
-                                            />
+<video 
+    src="assets/pinkswan_small.mp4" 
+    loop controls
+    className="w-full h-full object-cover" 
+    onError={(e) => {
+        e.target.style.display = 'none';
+        e.target.parentElement.innerHTML = `
+            <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-30">
+                <p class="text-[11px] font-bold uppercase tracking-widest">pinkswan_small.mp4</p>
+                <p class="text-[10px] mt-1 italic font-medium leading-tight text-zinc-500">배포 전에는 보이지 않습니다.<br/>깃허브에 영상을 올린 후 확인하세요.</p>
+            </div>
+        `;
+    }}
+/>
                                         </div>
                                     </div>
                                 </div>
