@@ -1,472 +1,481 @@
-import React, { useState } from 'react';
-import { 
-  Sun, Moon, Languages, Copy, Check, ExternalLink, PlayCircle, 
-  Github, Monitor, Edit3, Camera, Layout, Download, Zap, ChevronRight,
-  FileCode, Globe, HardDrive, Youtube, ShoppingCart, Quote, User
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비주얼 랜딩 페이지 제작 가이드</title>
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { transition: background-color 0.3s, color 0.3s; }
+        .truncate-custom { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+        pre { scrollbar-width: none; -ms-overflow-style: none; }
+        pre::-webkit-scrollbar { display: none; }
+        main section { position: relative; width: 100%; }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="root"></div>
 
-const App = () => {
-  const [lang, setLang] = useState('ko');
-  const [darkMode, setDarkMode] = useState(false);
-  const [copiedIndex, setCopiedIndex] = useState(null);
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-  const toggleLang = () => setLang(lang === 'ko' ? 'en' : 'ko');
-  const toggleDarkMode = () => setDarkMode(!darkMode);
+        const App = () => {
+            const [lang, setLang] = useState('ko');
+            const [darkMode, setDarkMode] = useState(false);
+            const [copiedIndex, setCopiedIndex] = useState(null);
 
-  const copyToClipboard = (text, index) => {
-    try {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-999999px";
-      textArea.style.top = "-999999px";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textArea);
-      if (successful) {
-        setCopiedIndex(index);
-        setTimeout(() => setCopiedIndex(null), 2000);
-      }
-    } catch (err) {
-      console.error('복사 중 오류가 발생했습니다:', err);
-    }
-  };
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [lang, darkMode, copiedIndex]);
 
-  const t = {
-    ko: {
-      title: "비주얼 랜딩 페이지 제작 가이드",
-      subtitle: "AI 에셋 생성부터 온라인 배포까지, 코딩 없이 완성하는 원페이지 튜토리얼",
-      step1: "AI 이미지 레퍼런스 생성",
-      step2: "이미지 베리에이션 만들기",
-      step3: "AI 영상 생성 및 편집",
-      step4: "깃허브 레포지토리 구축",
-      step5: "AI 웹페이지 생성 요청",
-      step6: "배포 및 최종 확인",
-      bonus: "Bonus. 유튜브 영상 임베딩 하기",
-      bonusDesc: "랜딩 페이지에 유튜브 영상을 직접 넣어 풍부한 시각 정보를 제공할 수 있습니다.",
-      demoHuman: "Your Demo Human",
-      introBook: "Introduce AI:Tionship",
-      bookTitle: "2026년 신간 『AI션십』이 나왔습니다!",
-      bookDesc: "기술서는 아닙니다. 엄밀히 트렌드서도 아닙니다. 사용자와 AI 사이의 관계와 인터랙션 그리고 서비스에 대한 책입니다.",
-      getItOn: "Get it on",
-      flowLink: "구글 Flow 바로가기",
-      downloadRef: "모델 이미지 다운로드",
-      copy: "복사",
-      copied: "복사됨!",
-      videoPath: "assets/pinkswan_small.mp4",
-      ghTitle: "깃허브(GitHub)란 무엇인가요?",
-      ghDesc: "파일을 전 세계 어디서든 접속 가능한 주소(URL)로 만들어주는 '코드용 클라우드'입니다.",
-      ghStep1Title: "레포지토리 생성",
-      ghStep1Desc: "내 프로젝트의 저장소 이름을 영어로 만듭니다.",
-      ghAddrTitle: "# 배포 주소 형식",
-      ghStep2Title: "assets 폴더 업로드",
-      ghStep2Desc: "영상이 담긴 폴더를 통째로 드래그해서 올립니다.",
-      ghIndexTitle: "대문 파일: index.html",
-      ghIndexDesc: "브라우저가 가장 먼저 찾는 파일입니다. 이름이 틀리면 웹사이트가 열리지 않습니다.",
-      deployStep1: "index.html 생성",
-      deployStep1Desc: "AI가 준 코드를 복사해 깃허브의 index.html에 붙여넣습니다.",
-      deployStep2: "GitHub Pages 활성화",
-      deployStep2Desc: "[Settings] > [Pages]에서 Branch를 main으로 저장하세요.",
-      deployPreview: "깃허브 배포 결과 (미리보기)"
-    },
-    en: {
-      title: "Visual Landing Page Guide",
-      subtitle: "Complete one-page tutorial from AI generation to online deployment",
-      step1: "AI Image Generation",
-      step2: "Image Variations",
-      step3: "AI Video & Editing",
-      step4: "GitHub Repository Setup",
-      step5: "AI Web Generation Prompt",
-      step6: "Deployment & Final Check",
-      bonus: "Bonus. Embedding YouTube Videos",
-      bonusDesc: "You can enrich your landing page by directly embedding YouTube videos.",
-      demoHuman: "Your Demo Human",
-      introBook: "Introduce AI:Tionship",
-      bookTitle: "New Book 『AI:Tionship』 is out!",
-      bookDesc: "This is not a technical manual or a trend report. It's a book about relationships, interactions, and services between humans and AI.",
-      getItOn: "Get it on",
-      flowLink: "Go to Google Flow",
-      downloadRef: "Download Model Image",
-      copy: "Copy",
-      copied: "Copied!",
-      videoPath: "assets/pinkswan_small.mp4",
-      ghTitle: "What is GitHub?",
-      ghDesc: "It is a 'Cloud for Code' that turns your files into a globally accessible URL.",
-      ghStep1Title: "Create Repository",
-      ghStep1Desc: "Create a storage for your project with an English name.",
-      ghAddrTitle: "# Repository Address Format",
-      ghStep2Title: "Upload assets folder",
-      ghStep2Desc: "Drag and drop the entire folder containing your videos.",
-      ghIndexTitle: "Main File: index.html",
-      ghIndexDesc: "The very first file a browser looks for. If the name is wrong, the site won't open.",
-      deployStep1: "Create index.html",
-      deployStep1Desc: "Copy the AI-generated code and paste it into index.html on GitHub.",
-      deployStep2: "Activate GitHub Pages",
-      deployStep2Desc: "Go to [Settings] > [Pages] and save the Branch as 'main'.",
-      deployPreview: "GitHub Deployment Result (Preview)"
-    }
-  };
+            const toggleLang = () => setLang(lang === 'ko' ? 'en' : 'ko');
+            const toggleDarkMode = () => setDarkMode(!darkMode);
 
-  const content = t[lang];
+            const copyToClipboard = (text, index) => {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                setCopiedIndex(index);
+                setTimeout(() => setCopiedIndex(null), 2000);
+            };
 
-  const cameraPrompts = [
-    { label: lang === 'ko' ? "풀샷" : "Full", prompt: "Full body shot of the character, standing in the center of the frame, showing the entire environment, cinematic wide angle, ultra-detailed, 8k" },
-    { label: lang === 'ko' ? "미디엄" : "Medium", prompt: "Medium shot of the character from the waist up, centered composition, professional studio setting, neutral expression" },
-    { label: lang === 'ko' ? "클로즈업" : "Close", prompt: "Close-up shot of the character's face focusing on the eyes and expression, shallow depth of field, blurred background, highly detailed beauty editorial" },
-    { label: lang === 'ko' ? "로앵글" : "Low", prompt: "Low angle shot, looking up at the character, elegant and powerful presence, elongated silhouette, dramatic yet clean lighting, cinematic fashion campaign style" },
-    { label: lang === 'ko' ? "더치 틸트" : "Tilt", prompt: "Dutch tilt shot, tilted camera angle, dynamic and creative composition, energetic lighting, avant-garde style, minimalist white interior, cinematic editorial lighting" },
-    { label: lang === 'ko' ? "사이드" : "Side", prompt: "Side profile shot of the character, looking towards the side of the frame, sharp silhouette, cinematic side lighting.minimalist white interior, cinematic editorial lighting" },
-    { label: "3/4", prompt: "Three-quarter angle shot of the character, slightly turned toward the camera, confident gaze, sculpted lighting, clean white interior, elegant beauty editorial aesthetic" },
-    { label: lang === 'ko' ? "오버더숄더" : "OTS", prompt: "Over-the-shoulder shot of the character, highlighting smooth hair texture and elegant shoulder line, subtle turn toward the camera, clean white minimalist room, soft editorial lighting" },
-    { label: "POV", prompt: "Point of view shot, POV, looking though the character’s eyes at [screen/object], first person perspective, immersive experience." }
-  ];
+            const t = {
+                ko: {
+                    title: "비주얼 랜딩 페이지 제작 가이드",
+                    subtitle: "AI 에셋 생성부터 온라인 배포까지, 코딩 없이 완성하는 원페이지 튜토리얼",
+                    step1: "AI 이미지 레퍼런스 생성",
+                    step2: "이미지 베리에이션 만들기",
+                    step3: "AI 영상 생성 및 편집",
+                    step4: "깃허브 레포지토리 구축",
+                    step5: "AI 웹페이지 생성 요청",
+                    step6: "배포 및 최종 확인",
+                    bonus: "Bonus. 유튜브 영상 임베딩 하기",
+                    bonusDesc: "랜딩 페이지에 유튜브 영상을 직접 넣어 풍부한 시각 정보를 제공할 수 있습니다.",
+                    demoHuman: "Your Demo Human",
+                    introBook: "Introduce AI:Tionship",
+                    bookTitle: "2026년 신간 『AI션십』이 나왔습니다!",
+                    bookDesc: "기술서는 아닙니다. 엄밀히 트렌드서도 아닙니다. 사용자와 AI 사이의 관계와 인터랙션 그리고 서비스에 대한 책입니다.",
+                    getItOn: "Get it on",
+                    flowLink: "구글 Flow 바로가기",
+                    downloadRef: "모델 이미지 다운로드",
+                    copy: "복사",
+                    copied: "복사됨!",
+                    videoPath: "assets/pinkswan_small.mp4",
+                    ghTitle: "깃허브(GitHub)란 무엇인가요?",
+                    ghDesc: "파일을 전 세계 어디서든 접속 가능한 주소(URL)로 만들어주는 '코드용 클라우드'입니다.",
+                    ghStep1Title: "레포지토리 생성",
+                    ghStep1Desc: "내 프로젝트의 저장소 이름을 영어로 만듭니다.",
+                    ghAddrTitle: "# 배포 주소 형식",
+                    ghStep2Title: "assets 폴더 업로드",
+                    ghStep2Desc: "영상이 담긴 폴더를 통째로 드래그해서 올립니다.",
+                    ghIndexTitle: "대문 파일: index.html",
+                    ghIndexDesc: "브라우저가 가장 먼저 찾는 파일입니다. 이름이 틀리면 웹사이트가 열리지 않습니다.",
+                    deployStep1: "index.html 생성",
+                    deployStep1Desc: "AI가 준 코드를 복사해 깃허브의 index.html에 붙여넣습니다.",
+                    deployStep2: "GitHub Pages 활성화",
+                    deployStep2Desc: "[Settings] > [Pages]에서 Branch를 main으로 저장하세요.",
+                    deployPreview: "깃허브 배포 결과 (미리보기)"
+                },
+                en: {
+                    title: "Visual Landing Page Guide",
+                    subtitle: "Complete one-page tutorial from AI generation to online deployment",
+                    step1: "AI Image Generation",
+                    step2: "Image Variations",
+                    step3: "AI Video & Editing",
+                    step4: "GitHub Repository Setup",
+                    step5: "AI Web Generation Prompt",
+                    step6: "Deployment & Final Check",
+                    bonus: "Bonus. Embedding YouTube Videos",
+                    bonusDesc: "You can enrich your landing page by directly embedding YouTube videos.",
+                    demoHuman: "Your Demo Human",
+                    introBook: "Introduce AI:Tionship",
+                    bookTitle: "New Book 『AI:Tionship』 is out!",
+                    bookDesc: "This is not a technical manual or a trend report. It's a book about relationships, interactions, and services between humans and AI.",
+                    getItOn: "Get it on",
+                    flowLink: "Go to Google Flow",
+                    downloadRef: "Download Model Image",
+                    copy: "Copy",
+                    copied: "Copied!",
+                    videoPath: "assets/pinkswan_small.mp4",
+                    ghTitle: "What is GitHub?",
+                    ghDesc: "It is a 'Cloud for Code' that turns your files into a globally accessible URL.",
+                    ghStep1Title: "Create Repository",
+                    ghStep1Desc: "Create a storage for your project with an English name.",
+                    ghAddrTitle: "# Repository Address Format",
+                    ghStep2Title: "Upload assets folder",
+                    ghStep2Desc: "Drag and drop the entire folder containing your videos.",
+                    ghIndexTitle: "Main File: index.html",
+                    ghIndexDesc: "The very first file a browser looks for. If the name is wrong, the site won't open.",
+                    deployStep1: "Create index.html",
+                    deployStep1Desc: "Copy the AI-generated code and paste it into index.html on GitHub.",
+                    deployStep2: "Activate GitHub Pages",
+                    deployStep2Desc: "Go to [Settings] > [Pages] and save the Branch as 'main'.",
+                    deployPreview: "GitHub Deployment Result (Preview)"
+                }
+            };
 
-  const videoPrompts = [
-    { label: lang === 'ko' ? "자연스러운 움직임" : "Natural Motion", prompt: "The character performs a slight posture shift with gentle full-body motion and a calm sense of rhythm. The movement feels refined, natural, and continuous. Smooth cinematic animation, 4k." },
-    { label: lang === 'ko' ? "일관성 유지" : "Consistent Motion", prompt: "The character performs a subtle movement while maintaining the original pose, outfit, facial expression, and polished editorial lighting from the reference image. 4k, smooth cinematic animation." }
-  ];
+            const content = t[lang];
 
-  const webDesignPrompt = `다음 영상을 포함한 랜딩 페이지 만드는 튜토리얼을 원페이지로 만들어줘. 
-제목은 비주얼 랜딩 페이지 제작 가이드 이면 될 것 같아. 
-스텝 바이 스텝으로 따라할 수 있도록 만들고 부족한 설명은 추가해줘. 
-이 수업을 듣지 않아도 따라갈 수 있도록 친절한 설명 넣어줘. 
-미니멀하고 깔끔한 한글 웹사이트로 만들고 첨부한 이미지 참고해서 똑같은 톤앤매너로 만들어. 
-한영 스위치 버튼도 넣어줘 (한글 디폴트)
-라이트 / 다크모드 전환도 가능하게 만들어줘 (라이트 디폴트)
-프롬프트는 대표 프롬프트만 넣어. 
+            const cameraPrompts = [
+                { label: lang === 'ko' ? "풀샷" : "Full", prompt: "Full body shot of the character, standing in the center of the frame, showing the entire environment, cinematic wide angle, ultra-detailed, 8k" },
+                { label: lang === 'ko' ? "미디엄" : "Medium", prompt: "Medium shot of the character from the waist up, centered composition, professional studio setting, neutral expression" },
+                { label: lang === 'ko' ? "클로즈업" : "Close", prompt: "Close-up shot of the character's face focusing on the eyes and expression, shallow depth of field, blurred background, highly detailed beauty editorial" },
+                { label: lang === 'ko' ? "로앵글" : "Low", prompt: "Low angle shot, looking up at the character, elegant and powerful presence, elongated silhouette, dramatic yet clean lighting, cinematic fashion campaign style" },
+                { label: lang === 'ko' ? "더치 틸트" : "Tilt", prompt: "Dutch tilt shot, tilted camera angle, dynamic and creative composition, energetic lighting, avant-garde style, minimalist white interior, cinematic editorial lighting" },
+                { label: lang === 'ko' ? "사이드" : "Side", prompt: "Side profile shot of the character, looking towards the side of the frame, sharp silhouette, cinematic side lighting.minimalist white interior, cinematic editorial lighting" },
+                { label: "3/4", prompt: "Three-quarter angle shot of the character, slightly turned toward the camera, confident gaze, sculpted lighting, clean white interior, elegant beauty editorial aesthetic" },
+                { label: lang === 'ko' ? "오버더숄더" : "OTS", prompt: "Over-the-shoulder shot of the character, highlighting smooth hair texture and elegant shoulder line, subtle turn toward the camera, clean white minimalist room, soft editorial lighting" },
+                { label: "POV", prompt: "Point of view shot, POV, looking though the character’s eyes at [screen/object], first person perspective, immersive experience." }
+            ];
 
-깃허브에 올리고 깃허브 페이지스로 배포할거야. 
-영상은 레퍼지토리 루트의 assets/pinkswan_small.mp4 에 넣어두었으니 이거를 랜딩페이지에서 보여줘. 
-다음 유튜브 영상도 임베딩해서 보여줘. 
-https://youtu.be/65B_GoV-qoE?si=26RZkk97N60Gz_RF`;
+            const videoPrompts = [
+                { label: lang === 'ko' ? "자연스러운 움직임" : "Natural Motion", prompt: "The character performs a slight posture shift with gentle full-body motion and a calm sense of rhythm. The movement feels refined, natural, and continuous. Smooth cinematic animation, 4k." },
+                { label: lang === 'ko' ? "일관성 유지" : "Consistent Motion", prompt: "The character performs a subtle movement while maintaining the original pose, outfit, facial expression, and polished editorial lighting from the reference image. 4k, smooth cinematic animation." }
+            ];
 
-  return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-zinc-950 text-zinc-100' : 'bg-white text-zinc-900'} font-sans antialiased`}>
-      <nav className={`fixed top-0 w-full z-50 border-b ${darkMode ? 'bg-zinc-950/80 border-zinc-800' : 'bg-white/80 border-zinc-100'} backdrop-blur-sm`}>
-        <div className="max-w-3xl mx-auto px-6 h-12 flex items-center justify-between">
-          <div className="font-bold tracking-tighter text-xs flex items-center gap-2 uppercase">
-            Visual Guide <span className="text-zinc-400">/ 2026</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button onClick={toggleLang} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors flex items-center gap-1 text-[11px] font-black uppercase">
-              <Languages size={14} /> {lang}
-            </button>
-            <button onClick={toggleDarkMode} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
-              {darkMode ? <Sun size={14} /> : <Moon size={14} />}
-            </button>
-          </div>
-        </div>
-      </nav>
+            const webDesignPrompt = `아래 조건을 반영해, 튜토리얼형 랜딩 페이지 원페이지 웹사이트를 제작해줘. 이 페이지의 목적은 사용자가 랜딩 페이지 제작 과정을 스텝 바이 스텝으로 따라할 수 있도록 안내하는 것이다. 각 단계는 초보자도 이해할 수 있도록 충분히 설명하고, 필요한 경우 부족한 설명을 자연스럽게 보완해줘.
 
-      <header className="pt-24 pb-12 px-6 text-center max-w-2xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tighter mb-3">
-          {content.title}
-        </h1>
-        <p className="text-zinc-500 text-sm leading-relaxed max-w-sm mx-auto">
-          {content.subtitle}
-        </p>
-      </header>
+웹사이트는 미니멀하고 깔끔한 한글 기반 디자인으로 만들고, 첨부한 이미지를 참고하여 비슷한 톤앤매너와 분위기를 유지해줘. 전체 인상은 정돈되어 있고 전문적이어야 하며, 불필요하게 복잡하거나 장식적인 요소는 줄여줘.
+다음 기능도 포함해줘: 1) 한/영 언어 전환 버튼 제공 (기본값: 한글) 2) 라이트/다크 모드 전환 버튼 제공 (기본값: 라이트 모드) 3) 튜토리얼 안에는 너무 많은 프롬프트를 넣지 말고, 대표 프롬프트만 선별해서 보여줘.
 
-      <main className="max-w-2xl mx-auto px-6 pb-24 space-y-20">
-        {/* Step 1 */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-            Step 1 <ChevronRight size={12} /> {content.step1}
-          </div>
-          <div className="flex gap-4">
-            <a href="https://labs.google/fx/ko/tools/flow" target="_blank" rel="noreferrer" className="text-xs font-bold border-b border-zinc-900 dark:border-white pb-1 flex items-center gap-1">
-              {content.flowLink} <ExternalLink size={12} />
-            </a>
-            <a href="https://github.com/soominKim/yonsei/blob/main/assets/model1.png" target="_blank" rel="noreferrer" className="text-xs font-bold border-b border-zinc-900 dark:border-white pb-1 flex items-center gap-1">
-              {content.downloadRef} <Download size={12} />
-            </a>
-          </div>
-        </section>
+또한 다음 두 개의 영상을 페이지 안에 포함해줘: 1) 레포지토리 루트의 로컬 영상 assets/pinkswan_small.mp4 2) 유튜브 임베드 영상 https://youtu.be/65B_GoV-qoE?si=26RZkk97N60Gz_RF
 
-        {/* Step 2 */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-            Step 2 <ChevronRight size={12} /> {content.step2}
-          </div>
-          <div className="grid gap-1.5">
-            {cameraPrompts.map((item, idx) => (
-              <div key={idx} className="group p-2.5 rounded-xl border dark:border-zinc-800 flex items-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors overflow-hidden">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase w-20 shrink-0">{item.label}</span>
-                <div className="flex-1 min-w-0 mx-3">
-                  <p className="text-[11px] text-zinc-500 italic truncate">"{item.prompt}"</p>
-                </div>
-                <button onClick={() => copyToClipboard(item.prompt, `cam-${idx}`)} className="p-1.5 opacity-20 group-hover:opacity-100 transition-opacity shrink-0 ml-auto">
-                  {copiedIndex === `cam-${idx}` ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+이 웹사이트는 GitHub에 업로드한 뒤 GitHub Pages로 배포할 예정이므로, 정적 웹사이트 형태로 만들고 배포 시 경로 문제가 없도록 고려해줘. 최종 결과물은 바로 실행 가능한 원페이지 랜딩 페이지 코드 형태로 작성해줘. 튜토리얼 섹션, 영상 섹션, 언어 전환, 모드 전환, 전체 레이아웃과 스타일을 모두 포함해서 완성도 있게 구성해줘.`;
 
-        {/* Step 3 */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-            Step 3 <ChevronRight size={12} /> {content.step3}
-          </div>
-          <div className="space-y-2">
-            {videoPrompts.map((item, idx) => (
-              <div key={idx} className="p-4 rounded-xl border dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/20 space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black text-blue-500 uppercase">{item.label}</span>
-                  <button onClick={() => copyToClipboard(item.prompt, `vid-${idx}`)} className="text-zinc-400 hover:text-zinc-900 transition-colors">
-                    {copiedIndex === `vid-${idx}` ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-                  </button>
-                </div>
-                <p className="text-[11px] text-zinc-500 italic leading-relaxed">"{item.prompt}"</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Step 4 */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-            Step 4 <ChevronRight size={12} /> {content.step4}
-          </div>
-          <div className="space-y-4">
-            <div className="p-5 rounded-2xl bg-blue-50/20 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20">
-              <h3 className="text-sm font-bold flex items-center gap-2 mb-2"><HardDrive size={16} className="text-blue-500"/> {content.ghTitle}</h3>
-              <p className="text-[11px] text-zinc-500 leading-relaxed">{content.ghDesc}</p>
-            </div>
-            <div className="space-y-4 text-sm">
-                <div className="flex gap-4">
-                    <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-xs font-bold">1</div>
-                    <div className="flex-1">
-                        <h4 className="font-bold mb-0.5">{content.ghStep1Title}</h4>
-                        <p className="text-zinc-500 mb-2">{content.ghStep1Desc}</p>
-                        <div className="p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[10px] font-mono border dark:border-zinc-700">
-                            https://github.com/{"{username}"}/{"{repo}"}.git
-                        </div>
-                    </div>
-                </div>
-                <div className="flex gap-4">
-                    <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-xs font-bold">2</div>
-                    <div>
-                        <h4 className="font-bold mb-0.5">{content.ghStep2Title}</h4>
-                        <p className="text-zinc-500">{content.ghStep2Desc}</p>
-                    </div>
-                </div>
-                <div className="flex gap-4 p-5 rounded-2xl bg-orange-50/30 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20">
-                    <FileCode className="text-orange-500 shrink-0" size={18} />
-                    <div className="flex-1">
-                        <h4 className="font-bold mb-0.5 text-orange-700 dark:text-orange-400">{content.ghIndexTitle}</h4>
-                        <p className="text-zinc-500">{content.ghIndexDesc}</p>
-                    </div>
-                </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Step 5 */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-            Step 5 <ChevronRight size={12} /> {content.step5}
-          </div>
-          <div className={`p-6 rounded-2xl border-2 border-dashed ${darkMode ? 'border-zinc-800 bg-zinc-900/20' : 'border-zinc-100 bg-zinc-50/20'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Master Prompt</span>
-              <button onClick={() => copyToClipboard(webDesignPrompt, 'web-prompt')} className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black rounded-full text-[10px] font-black uppercase transition-transform active:scale-95">
-                {copiedIndex === 'web-prompt' ? <Check size={12} /> : <Copy size={12} />}
-                {copiedIndex === 'web-prompt' ? content.copied : content.copy}
-              </button>
-            </div>
-            <pre className="text-[11px] text-zinc-400 whitespace-pre-wrap leading-relaxed font-mono italic">{webDesignPrompt}</pre>
-          </div>
-        </section>
-
-        {/* Step 6 & Final Preview */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-            Step 6 <ChevronRight size={12} /> {content.step6}
-          </div>
-          <div className="space-y-4 text-sm">
-              <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-xs font-bold">1</div>
-                  <div>
-                      <h4 className="font-bold mb-0.5">{content.deployStep1}</h4>
-                      <p className="text-zinc-500">{content.deployStep1Desc}</p>
-                  </div>
-              </div>
-              <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-xs font-bold">2</div>
-                  <div>
-                      <h4 className="font-bold mb-0.5">{content.deployStep2}</h4>
-                      <p className="text-zinc-500">{content.deployStep2Desc}</p>
-                  </div>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border dark:border-zinc-800 space-y-3">
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                    <Globe size={14}/> {content.deployPreview}
-                  </h4>
-                  <div className="aspect-video rounded-xl overflow-hidden bg-white dark:bg-black shadow-inner relative group">
-                    <video 
-                      src={content.videoPath} 
-                      autoPlay loop muted 
-                      className="w-full h-full object-cover" 
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.parentElement.innerHTML = `
-                          <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-30">
-                            <p class="text-[11px] font-bold uppercase tracking-widest">Asset: assets/pinkswan_small.mp4</p>
-                            <p class="text-[10px] mt-1 italic">Will display correctly after upload</p>
-                          </div>
-                        `;
-                      }}
-                    />
-                  </div>
-              </div>
-          </div>
-        </section>
-
-        {/* Bonus Section */}
-        <section className="pt-12 border-t dark:border-zinc-800 space-y-8">
-          <div className="text-center space-y-2">
-            <h2 className="text-xl font-black tracking-tighter flex items-center justify-center gap-2">
-              <Youtube className="text-red-500" size={24} /> {content.bonus}
-            </h2>
-            <p className="text-[11px] text-zinc-500 mx-auto max-w-xs leading-relaxed">
-              {content.bonusDesc}
-            </p>
-          </div>
-          <div className="aspect-video rounded-2xl overflow-hidden shadow-xl border dark:border-zinc-800">
-            <iframe 
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/65B_GoV-qoE" 
-              title="YouTube tutorial"
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-            ></iframe>
-          </div>
-        </section>
-
-        {/* Demo Human Section */}
-        <section id="your-demo-human" className={`pt-12 pb-4 border-t ${darkMode ? 'border-zinc-800' : 'border-zinc-100'}`}>
-            <div className={`rounded-2xl p-6 md:p-10 ${darkMode ? 'bg-zinc-900/30' : 'bg-zinc-50/30'} border ${darkMode ? 'border-zinc-800' : 'border-zinc-100'}`}>
-                <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 mb-6">{content.demoHuman}</h2>
-                <div className="flex flex-col md:flex-row gap-6 items-start">
-                    <div className="flex-1 w-full md:w-auto">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                                <User className="text-orange-500" size={20} />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold">Soomin Kim</h3>
-                                <p className={`text-sm ${darkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>Taejae University</p>
-                            </div>
-                        </div>
-                        <div className={`inline-block p-3 rounded-lg text-[10px] font-mono leading-relaxed select-all border ${darkMode ? 'bg-zinc-950 border-zinc-800 text-zinc-500' : 'bg-white border-zinc-200 text-zinc-600'} mt-3`}>
-                            <div className="flex items-center gap-2"><span className="opacity-30 select-none">$</span> smsoominkim@gmail.com</div>
-                            <div className="flex items-center gap-2">
-                                <span className="opacity-30 select-none">$</span>
-                                <a href="https://soominkim.github.io" target="_blank" rel="noreferrer" className="hover:text-orange-500 transition-colors">soominkim.github.io</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="max-w-sm pt-1">
-                        <p className={`text-sm leading-relaxed ${darkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                            HCI 연구자이자 프로덕트 메이커입니다. 베스트셀러 <a href="https://product.kyobobook.co.kr/detail/S000201225687" target="_blank" rel="noreferrer" className="text-orange-500 hover:underline">『챗GPT 거대한 전환』</a>과 신간 <a href="https://product.kyobobook.co.kr/detail/S000219080971" target="_blank" rel="noreferrer" className="text-orange-500 hover:underline">『AI션십』</a>를 썼습니다. 누구나 크리에이터가 될 수 있는 새로운 패러다임을 공유합니다.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        {/* AI:Tionship Section - Links updated */}
-        <section id="ai-tionship" className={`pt-4 pb-12 border-t ${darkMode ? 'border-zinc-800' : 'border-zinc-100'}`}>
-            <div className="flex flex-col md:flex-row gap-8 items-start">
-                <div className="flex-1">
-                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 mb-4">{content.introBook}</h2>
-                    <h3 className="text-xl font-bold mb-6 leading-tight">{content.bookTitle}</h3>
-                    
-                    <div className="mb-8 group relative inline-block">
-                        <a href="https://product.kyobobook.co.kr/detail/S000219080971" target="_blank" rel="noreferrer">
-                            <img 
-                                src="aitionship1.jpg" 
-                                alt="AI션십 Book Cover" 
-                                className="w-36 rounded-xl shadow-xl transition-all duration-500 group-hover:scale-[1.03]"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.parentElement.innerHTML = '<div class="w-36 aspect-[3/4] bg-zinc-100 dark:bg-zinc-900 rounded-xl flex items-center justify-center text-[10px] text-zinc-400 italic px-3 text-center border dark:border-zinc-800">aitionship1.jpg</div>';
-                                }}
-                            />
-                        </a>
-                    </div>
-
-                    <p className={`text-xs leading-relaxed mb-6 ${darkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                        {content.bookDesc}
-                    </p>
-                    
-                    <div className="space-y-3">
-                        <h4 className={`text-[10px] font-bold uppercase tracking-widest ${darkMode ? 'text-zinc-600' : 'text-zinc-300'}`}>{content.getItOn}</h4>
-                        <div className="flex flex-wrap gap-2">
-                            {[
-                                { name: "교보문고", url: "https://product.kyobobook.co.kr/detail/S000219080971" },
-                                { name: "예스24", url: "https://www.yes24.com/product/goods/175550093" },
-                                { name: "알라딘", url: "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=384755627" }
-                            ].map((store) => (
-                                <a 
-                                    key={store.name} 
-                                    href={store.url} 
-                                    target="_blank" 
-                                    rel="noreferrer" 
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all hover:scale-[1.02] ${darkMode ? 'border-zinc-800 bg-zinc-900/50' : 'border-zinc-200 bg-white'}`}
-                                >
-                                    <ShoppingCart size={12} className="text-orange-500" />
-                                    <span className="text-[11px] font-medium">{store.name}</span>
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex-1 w-full space-y-4">
-                    {[
-                        {
-                            name: "김주호",
-                            title: "카이스트 전산학부 교수",
-                            text: "저자와 제가 연구하고 있는 HCI 분야에서는 모델의 성능보다 사용자와의 ‘상호작용’이 AI의 핵심 가치임을 강조해 왔습니다. 인간 중심, 관계 중심 AI의 가치를 강조하는 이 책의 출간을 기쁘게 생각합니다."
-                        },
-                        {
-                            name: "김종윤",
-                            title: "스캐터랩 대표",
-                            text: "위대한 비즈니스에는 숫자로는 설명할 수 없는 무언가가 있습니다. 신뢰, 스토리 같은 요소들입니다. 이 책은 비즈니스의 성패를 가르는 진짜 승부처가 어디인지 명확히 일깨워줍니다."
-                        }
-                    ].map((item, idx) => (
-                        <div key={idx} className={`p-5 rounded-2xl border relative ${darkMode ? 'bg-zinc-900/30 border-zinc-800' : 'bg-zinc-50 border-zinc-100'}`}>
-                            <Quote size={16} className="text-orange-500 mb-2 opacity-30" />
-                            <p className={`text-xs leading-relaxed mb-3 text-justify ${darkMode ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                                {item.text}
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <div className="w-0.5 h-6 bg-orange-500 rounded-full" />
-                                <div>
-                                    <p className="text-sm font-bold">{item.name}</p>
-                                    <p className={`text-[10px] ${darkMode ? 'text-zinc-600' : 'text-zinc-500'}`}>{item.title}</p>
+            return (
+                <div className={darkMode ? 'dark' : ''}>
+                    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-500 pb-20">
+                        {/* Navigation */}
+                        <nav className="fixed top-0 w-full z-[100] border-b border-zinc-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm">
+                            <div className="max-w-3xl mx-auto px-6 h-12 flex items-center justify-between">
+                                <div className="font-bold tracking-tighter text-xs flex items-center gap-2 uppercase">
+                                    Visual Guide <span className="text-zinc-400">/ 2026</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button onClick={toggleLang} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors flex items-center gap-1 text-[11px] font-black uppercase">
+                                        <i data-lucide="languages" className="w-4 h-4"></i> {lang}
+                                    </button>
+                                    <button onClick={toggleDarkMode} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                                        {darkMode ? <i data-lucide="sun" className="w-4 h-4"></i> : <i data-lucide="moon" className="w-4 h-4"></i>}
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        </nav>
+
+                        {/* Hero Header */}
+                        <header className="pt-24 pb-12 px-6 text-center max-w-2xl mx-auto">
+                            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tighter mb-3">{content.title}</h1>
+                            <p className="text-zinc-500 text-sm leading-relaxed max-w-sm mx-auto">{content.subtitle}</p>
+                        </header>
+
+                        <main className="max-w-2xl mx-auto px-6 space-y-20">
+                            {/* Step 1 */}
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
+                                    Step 1 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step1}
+                                </div>
+                                <div className="flex gap-4">
+                                    <a href="https://labs.google/fx/ko/tools/flow" target="_blank" className="text-xs font-bold border-b border-zinc-900 dark:border-white pb-1 flex items-center gap-1.5">
+                                        {content.flowLink} <i data-lucide="external-link" className="w-3 h-3"></i>
+                                    </a>
+                                    <a href="https://github.com/soominKim/yonsei/blob/main/assets/model1.png" target="_blank" className="text-xs font-bold border-b border-zinc-900 dark:border-white pb-1 flex items-center gap-1.5">
+                                        {content.downloadRef} <i data-lucide="download" className="w-3 h-3"></i>
+                                    </a>
+                                </div>
+                            </section>
+
+                            {/* Step 2 */}
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
+                                    Step 2 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step2}
+                                </div>
+                                <div className="grid gap-1.5">
+                                    {cameraPrompts.map((item, idx) => (
+                                        <div key={idx} className="group p-2.5 rounded-xl border border-zinc-100 dark:border-zinc-800 flex items-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors overflow-hidden">
+                                            <span className="text-[10px] font-bold text-zinc-400 uppercase w-20 shrink-0">{item.label}</span>
+                                            <div className="flex-1 min-w-0 mx-3">
+                                                <p className="text-[11px] text-zinc-500 italic truncate">"{item.prompt}"</p>
+                                            </div>
+                                            <button onClick={() => copyToClipboard(item.prompt, `cam-${idx}`)} className="p-1.5 opacity-20 group-hover:opacity-100 transition-opacity shrink-0 ml-auto">
+                                                {copiedIndex === `cam-${idx}` ? <i data-lucide="check" className="w-4 h-4 text-green-500"></i> : <i data-lucide="copy" className="w-4 h-4"></i>}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+
+                            {/* Step 3 */}
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
+                                    Step 3 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step3}
+                                </div>
+                                <div className="space-y-2">
+                                    {videoPrompts.map((item, idx) => (
+                                        <div key={idx} className="p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/20 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[10px] font-black text-blue-500 uppercase">{item.label}</span>
+                                                <button onClick={() => copyToClipboard(item.prompt, `vid-${idx}`)} className="text-zinc-400 hover:text-zinc-900 transition-colors">
+                                                    {copiedIndex === `vid-${idx}` ? <i data-lucide="check" className="w-4 h-4 text-green-500"></i> : <i data-lucide="copy" className="w-4 h-4"></i>}
+                                                </button>
+                                            </div>
+                                            <p className="text-[11px] text-zinc-500 italic leading-relaxed">"{item.prompt}"</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+
+                            {/* Step 4: GitHub Repository (Refactored to cards) */}
+                            <section className="space-y-6">
+                                <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
+                                    Step 4 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step4}
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="p-5 rounded-2xl bg-blue-50/20 dark:bg-blue-900/10 border border-blue-100/50 dark:border-blue-900/20">
+                                        <h3 className="text-xs font-bold flex items-center gap-2 mb-2 text-blue-700 dark:text-blue-400">
+                                            <i data-lucide="hard-drive" className="w-4 h-4"></i> {content.ghTitle}
+                                        </h3>
+                                        <p className="text-[10px] text-zinc-500 leading-relaxed">{content.ghDesc}</p>
+                                    </div>
+
+                                    {/* Repository Creation Box */}
+                                    <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800">
+                                        <div className="flex gap-4 items-start">
+                                            <i data-lucide="plus-circle" className="w-5 h-5 text-purple-500 shrink-0 mt-0.5"></i>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-sm font-bold mb-1">{content.ghStep1Title}</h4>
+                                                <p className="text-zinc-500 text-xs mb-3">{content.ghStep1Desc}</p>
+                                                <div className="p-2.5 rounded-lg bg-white/50 dark:bg-zinc-950/50 text-[10px] font-mono border border-zinc-100 dark:border-zinc-700 text-zinc-400">
+                                                    https://github.com/{"{username}"}/{"{repo}"}.git
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800">
+                                        <div className="flex gap-4 items-start">
+                                            <i data-lucide="folder-up" className="w-5 h-5 text-zinc-400 shrink-0 mt-0.5"></i>
+                                            <div className="flex-1">
+                                                <h4 className="text-sm font-bold mb-1">{content.ghStep2Title}</h4>
+                                                <p className="text-zinc-500 text-xs">{content.ghStep2Desc}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-5 rounded-2xl bg-orange-50/30 dark:bg-orange-900/10 border border-orange-100/50 dark:border-orange-900/20">
+                                        <div className="flex gap-4 items-start">
+                                            <i data-lucide="file-code" className="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
+                                            <div className="flex-1">
+                                                <h4 className="text-sm font-bold mb-1 text-orange-700 dark:text-orange-400">{content.ghIndexTitle}</h4>
+                                                <p className="text-zinc-500 text-xs">{content.ghIndexDesc}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Step 5: Updated Master Prompt */}
+                            <section className="space-y-4">
+                                <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
+                                    Step 5 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step5}
+                                </div>
+                                <div className="p-6 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/20">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Master Prompt</span>
+                                        <button onClick={() => copyToClipboard(webDesignPrompt, 'web-prompt')} className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black rounded-full text-[10px] font-black uppercase transition-transform active:scale-95">
+                                            {copiedIndex === 'web-prompt' ? <i data-lucide="check" className="w-3 h-3"></i> : <i data-lucide="copy" className="w-3 h-3"></i>}
+                                            {copiedIndex === 'web-prompt' ? content.copied : content.copy}
+                                        </button>
+                                    </div>
+                                    <pre className="text-[11px] text-zinc-500 dark:text-zinc-400 whitespace-pre-wrap leading-relaxed font-sans italic overflow-x-hidden">
+                                        {webDesignPrompt}
+                                    </pre>
+                                </div>
+                            </section>
+
+                            {/* Step 6 */}
+                            <section className="space-y-6">
+                                <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
+                                    Step 6 <i data-lucide="chevron-right" className="w-3 h-3"></i> {content.step6}
+                                </div>
+                                <div className="space-y-4 text-sm">
+                                    <div className="flex gap-4 items-start">
+                                        <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-[11px] font-bold">1</div>
+                                        <div className="flex-1 pt-1">
+                                            <h4 className="font-bold mb-0.5 text-sm">{content.deployStep1}</h4>
+                                            <p className="text-zinc-500 text-xs">{content.deployStep1Desc}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 items-start">
+                                        <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-[11px] font-bold">2</div>
+                                        <div className="flex-1 pt-1">
+                                            <h4 className="font-bold mb-0.5 text-sm">{content.deployStep2}</h4>
+                                            <p className="text-zinc-500 text-xs">{content.deployStep2Desc}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 mt-8">
+                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2 mb-4">
+                                            <i data-lucide="globe" className="w-4 h-4 text-blue-500"></i> {content.deployPreview}
+                                        </h4>
+                                        <div className="aspect-video rounded-xl overflow-hidden bg-white dark:bg-black shadow-inner relative border border-zinc-100 dark:border-zinc-800">
+                                            <video 
+                                                src="assets/pinkswan_small.mp4" 
+                                                autoPlay loop muted 
+                                                className="w-full h-full object-cover" 
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.parentElement.innerHTML = `
+                                                        <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center opacity-30">
+                                                            <p class="text-[11px] font-bold uppercase tracking-widest">pinkswan_small.mp4</p>
+                                                            <p class="text-[10px] mt-1 italic font-medium leading-tight text-zinc-500">배포 전에는 보이지 않습니다.<br/>깃허브에 영상을 올린 후 확인하세요.</p>
+                                                        </div>
+                                                    `;
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Bonus YouTube */}
+                            <section className="pt-12 border-t border-zinc-100 dark:border-zinc-800 space-y-8">
+                                <div className="text-center space-y-2">
+                                    <h2 className="text-xl font-black tracking-tighter flex items-center justify-center gap-2">
+                                        <i data-lucide="youtube" className="text-red-500 w-6 h-6"></i> {content.bonus}
+                                    </h2>
+                                    <p className="text-[10px] text-zinc-500 mx-auto max-w-xs leading-relaxed">{content.bonusDesc}</p>
+                                </div>
+                                <div className="aspect-video rounded-2xl overflow-hidden shadow-xl border border-zinc-100 dark:border-zinc-800 bg-black">
+                                    <iframe className="w-full h-full" src="https://www.youtube.com/embed/65B_GoV-qoE" title="YouTube tutorial" frameBorder="0" allowFullScreen></iframe>
+                                </div>
+                            </section>
+
+                            {/* Your Demo Human */}
+                            <section id="your-demo-human" className="pt-12 border-t border-zinc-100 dark:border-zinc-800">
+                                <div className="rounded-2xl p-6 md:p-10 bg-zinc-50/50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800">
+                                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 mb-6">{content.demoHuman}</h2>
+                                    <div className="flex flex-col md:flex-row gap-8 items-start">
+                                        <div className="flex-1 w-full md:w-auto">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                                                    <i data-lucide="user" className="text-orange-500 w-5 h-5"></i>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xl font-bold">Soomin Kim</h3>
+                                                    <p className="text-[11px] dark:text-zinc-500 text-zinc-400 uppercase tracking-tighter">Taejae University</p>
+                                                </div>
+                                            </div>
+                                            <div className="inline-block p-3 rounded-lg text-[10px] font-mono leading-relaxed border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-zinc-600 dark:text-zinc-500">
+                                                <div className="flex items-center gap-2"><span className="opacity-30 mr-1">$</span> smsoominkim@gmail.com</div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="opacity-30 mr-1">$</span>
+                                                    <a href="https://soominkim.github.io" target="_blank" className="hover:text-orange-500 transition-colors">soominkim.github.io</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="max-w-sm pt-1">
+                                            <p className="text-[12px] leading-relaxed dark:text-zinc-400 text-zinc-600">
+                                                HCI 연구자이자 프로덕트 메이커입니다. 베스트셀러 『챗GPT 거대한 전환』과 신간 『AI션십』을 썼습니다. 누구나 크리에이터가 될 수 있는 새로운 패러다임을 공유합니다.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Introduce AI:Tionship - Spacing & Buttons Adjusted */}
+                            <section id="ai-tionship" className="pt-6 pb-20 space-y-10">
+                                <div className="flex flex-col md:flex-row gap-10 items-start">
+                                    <div className="flex-1 space-y-6">
+                                        <div>
+                                            <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 mb-4">{content.introBook}</h2>
+                                            <h3 className="text-xl font-bold leading-tight">{content.bookTitle}</h3>
+                                        </div>
+                                        
+                                        <div className="group inline-block relative">
+                                            <a href="https://product.kyobobook.co.kr/detail/S000219080971" target="_blank">
+                                                <img 
+                                                    src="aitionship1.jpg" 
+                                                    alt="AI션십" 
+                                                    className="w-40 rounded-xl shadow-xl transition-transform duration-500 group-hover:scale-[1.03]"
+                                                    onError={(e) => { e.target.src="https://via.placeholder.com/160x220?text=AI:TIONSHIP" }}
+                                                />
+                                            </a>
+                                            <div className="absolute -bottom-3 -right-3 w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center font-black text-[9px] shadow-xl rotate-12 group-hover:scale-110 transition-transform">NEW</div>
+                                        </div>
+
+                                        <p className="text-[12px] leading-relaxed mb-6 dark:text-zinc-400 text-zinc-600">{content.bookDesc}</p>
+                                        
+                                        <div className="space-y-4">
+                                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-300 dark:text-zinc-600">{content.getItOn}</h4>
+                                            {/* Button sizing refined to fit one row and avoid overlap */}
+                                            <div className="flex flex-wrap gap-1.5 pb-2">
+                                                <a href="https://product.kyobobook.co.kr/detail/S000219080971" target="_blank" className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 transition-all hover:scale-[1.02] shrink-0">
+                                                    <i data-lucide="shopping-cart" className="text-orange-500 w-3 h-3"></i> <span className="text-[10px] font-bold">교보문고</span>
+                                                </a>
+                                                <a href="https://www.yes24.com/product/goods/175550093" target="_blank" className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 transition-all hover:scale-[1.02] shrink-0">
+                                                    <i data-lucide="shopping-cart" className="text-orange-500 w-3 h-3"></i> <span className="text-[10px] font-bold">예스24</span>
+                                                </a>
+                                                <a href="https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=384755627" target="_blank" className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 transition-all hover:scale-[1.02] shrink-0">
+                                                    <i data-lucide="shopping-cart" className="text-orange-500 w-3 h-3"></i> <span className="text-[10px] font-bold">알라딘</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-1 w-full space-y-4">
+                                        <div className="p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30">
+                                            <i data-lucide="quote" className="text-orange-500 mb-3 opacity-30 w-5 h-5"></i>
+                                            <p className="text-[12px] font-semibold leading-relaxed mb-4 text-justify text-zinc-700 dark:text-zinc-300 italic">HCI 분야에서는 모델의 성능보다 상호작용이 AI의 핵심 가치임을 강조해 왔습니다. 인간 중심 AI의 가치를 강조하는 이 책의 출간을 기쁘게 생각합니다.</p>
+                                            <div className="flex items-center gap-2"><div className="w-1 h-6 bg-orange-500 rounded-full" /><div><p className="text-[12px] font-bold">김주호</p><p className="text-[10px] text-zinc-500">카이스트 전산학부 교수</p></div></div>
+                                        </div>
+                                        <div className="p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30">
+                                            <i data-lucide="quote" className="text-orange-500 mb-3 opacity-30 w-5 h-5"></i>
+                                            <p className="text-[12px] font-semibold leading-relaxed mb-4 text-justify text-zinc-700 dark:text-zinc-300 italic">위대한 비즈니스에는 숫자로는 설명할 수 없는 스토리와 신뢰가 있습니다. 이 책은 비즈니스의 성패를 가르는 진짜 승부처가 어디인지 알려줍니다.</p>
+                                            <div className="flex items-center gap-3"><div className="w-1 h-6 bg-orange-500 rounded-full" /><div><p className="text-[12px] font-bold">김종윤</p><p className="text-[10px] text-zinc-500">스캐터랩 대표</p></div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </main>
+
+                        <footer className="pt-20 pb-12 border-t border-zinc-100 dark:border-zinc-800 text-center">
+                            <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-[0.2em] italic leading-relaxed">
+                                © 2026 Visual Design Lab • Created by Soomin <br/>
+                                Design with AI, Build with GitHub
+                            </p>
+                        </footer>
+                    </div>
                 </div>
-            </div>
-        </section>
-      </main>
+            );
+        };
 
-      <footer className="py-12 border-t dark:border-zinc-800 text-center">
-        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest italic leading-relaxed">
-          © 2026 Visual Design Lab • Created by Soomin
-        </p>
-      </footer>
-    </div>
-  );
-};
-
-export default App;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
