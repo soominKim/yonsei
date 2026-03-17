@@ -99,7 +99,8 @@
                     deployStep1Desc: "AI가 준 코드를 복사해 깃허브의 index.html에 붙여넣습니다.",
                     deployStep2: "GitHub Pages 활성화",
                     deployStep2Desc: "[Settings] > [Pages]에서 Branch를 main으로 저장하세요.",
-                    deployPreview: "깃허브 배포 결과 (미리보기)"
+                    deployPreview: "깃허브 배포 결과 (미리보기)",
+                    step1PromptNote: "*본 튜토리얼에서는 모델 이미지 제공하나 다음과 같은 형식의 프롬프트로 생성 가능"
                 },
                 en: {
                     title: "Visual Landing Page Guide",
@@ -135,11 +136,14 @@
                     deployStep1Desc: "Copy the AI-generated code and paste it into index.html on GitHub.",
                     deployStep2: "Activate GitHub Pages",
                     deployStep2Desc: "Go to [Settings] > [Pages] and save the Branch as 'main'.",
-                    deployPreview: "GitHub Deployment Result (Preview)"
+                    deployPreview: "GitHub Deployment Result (Preview)",
+                    step1PromptNote: "*This tutorial provides a model image, but you can generate one using a prompt like this"
                 }
             };
 
             const content = t[lang];
+
+            const step1ImagePrompt = `Ethereal high-fashion photography, close-up beauty portrait, bust shot,simple pose, centered framing a young East Asian woman with long straight light brown hair and full blunt bangs, pale smooth skin, large almond-shaped eyes, delicate feminine features, ultra-flattering face, dreamlike soft glamour, premium idol visual, wearing a soft dusty pink fitted wrap-style top, soft elegant expression, looking at the camera, clean minimal studio backgroundclean white studio background , seamless studio backdrop, soft diffused lighting, pastel luxury campaign, photorealistic, luxury beauty editorial, refined facial detail.`;
 
             const cameraPrompts = [
                 { label: lang === 'ko' ? "풀샷" : "Full", prompt: "Full body shot of the character, standing in the center of the frame, showing the entire environment, cinematic wide angle, ultra-detailed, 8k" },
@@ -150,7 +154,7 @@
                 { label: lang === 'ko' ? "사이드" : "Side", prompt: "Side profile shot of the character, looking towards the side of the frame, sharp silhouette, cinematic side lighting.minimalist white interior, cinematic editorial lighting" },
                 { label: "3/4", prompt: "Three-quarter angle shot of the character, slightly turned toward the camera, confident gaze, sculpted lighting, clean white interior, elegant beauty editorial aesthetic" },
                 { label: lang === 'ko' ? "오버더숄더" : "OTS", prompt: "Over-the-shoulder shot of the character, highlighting smooth hair texture and elegant shoulder line, subtle turn toward the camera, clean white minimalist room, soft editorial lighting" },
-                { label: "POV", prompt: "Point of view shot, POV, looking though the character’s eyes at [screen/object], first person perspective, immersive experience." }
+                { label: "POV", prompt: "Point of view shot, POV, looking though the character's eyes at [screen/object], first person perspective, immersive experience." }
             ];
 
             const videoPrompts = [
@@ -206,6 +210,21 @@
                                     <a href="https://github.com/soominKim/yonsei/blob/main/assets/model1.png" target="_blank" className="text-xs font-bold border-b border-zinc-900 dark:border-white pb-1 flex items-center gap-1.5">
                                         {content.downloadRef} <i data-lucide="download" className="w-3 h-3"></i>
                                     </a>
+                                </div>
+
+                                {/* Step 1 Master Prompt */}
+                                <div className="p-6 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/20">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Master Prompt</span>
+                                        <button onClick={() => copyToClipboard(step1ImagePrompt, 'step1-prompt')} className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black rounded-full text-[10px] font-black uppercase transition-transform active:scale-95">
+                                            {copiedIndex === 'step1-prompt' ? <i data-lucide="check" className="w-3 h-3"></i> : <i data-lucide="copy" className="w-3 h-3"></i>}
+                                            {copiedIndex === 'step1-prompt' ? content.copied : content.copy}
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-zinc-400 italic mb-3">{content.step1PromptNote}</p>
+                                    <pre className="text-[11px] text-zinc-500 dark:text-zinc-400 whitespace-pre-wrap leading-relaxed font-sans italic overflow-x-hidden">
+                                        {step1ImagePrompt}
+                                    </pre>
                                 </div>
                             </section>
 
