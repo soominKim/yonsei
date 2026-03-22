@@ -10,6 +10,21 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script>
+        const firebaseApp = firebase.initializeApp({
+            apiKey: "AIzaSyCXWenubSmKeuU5LIyBjNm9jCKPZR_p9zk",
+            authDomain: "yonsei-comments.firebaseapp.com",
+            databaseURL: "https://yonsei-comments-default-rtdb.firebaseio.com",
+            projectId: "yonsei-comments",
+            storageBucket: "yonsei-comments.firebasestorage.app",
+            messagingSenderId: "1068695825840",
+            appId: "1:1068695825840:web:8f703ee4ba5f07cf09fa75"
+        });
+        const db = firebase.database();
+    </script>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -43,6 +58,39 @@
             const [lang, setLang] = useState('ko');
             const [darkMode, setDarkMode] = useState(false);
             const [copiedIndex, setCopiedIndex] = useState(null);
+            const [comments, setComments] = useState([]);
+            const [nickname, setNickname] = useState('');
+            const [commentText, setCommentText] = useState('');
+
+            useEffect(() => {
+                const ref = db.ref('comments');
+                ref.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        const list = Object.entries(data).map(([key, val]) => ({ ...val, firebaseKey: key }));
+                        list.sort((a, b) => b.id - a.id);
+                        setComments(list);
+                    } else {
+                        setComments([]);
+                    }
+                });
+                return () => ref.off();
+            }, []);
+
+            const addComment = () => {
+                if (!nickname.trim() || !commentText.trim()) return;
+                db.ref('comments').push({
+                    id: Date.now(),
+                    nickname: nickname.trim(),
+                    text: commentText.trim(),
+                    time: new Date().toLocaleString('ko-KR')
+                });
+                setCommentText('');
+            };
+
+            const deleteComment = (firebaseKey) => {
+                db.ref('comments/' + firebaseKey).remove();
+            };
 
             useEffect(() => {
                 if (window.lucide) {
@@ -481,6 +529,68 @@
                                 </div>
                             </section>
                         </main>
+
+                        {/* Comments Section */}
+                        <section className="max-w-2xl mx-auto px-6 pt-16 pb-8">
+                            <div className="border-t border-zinc-100 dark:border-zinc-800 pt-12 space-y-6">
+                                <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-500 mb-6">
+                                    {lang === 'ko' ? '방명록' : 'Guestbook'}
+                                </h2>
+
+                                <div className="space-y-3">
+                                    <input
+                                        type="text"
+                                        value={nickname}
+                                        onChange={(e) => setNickname(e.target.value)}
+                                        placeholder={lang === 'ko' ? '닉네임' : 'Nickname'}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-blue-400 transition-colors"
+                                        maxLength={20}
+                                    />
+                                    <textarea
+                                        value={commentText}
+                                        onChange={(e) => setCommentText(e.target.value)}
+                                        placeholder={lang === 'ko' ? '댓글을 남겨주세요' : 'Leave a comment'}
+                                        rows={3}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-blue-400 transition-colors resize-none"
+                                        maxLength={500}
+                                    />
+                                    <div className="flex justify-end">
+                                        <button
+                                            onClick={addComment}
+                                            className="px-5 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black rounded-full text-[11px] font-bold uppercase tracking-wider transition-transform active:scale-95 hover:opacity-90"
+                                        >
+                                            {lang === 'ko' ? '등록' : 'Post'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3 pt-4">
+                                    {comments.length === 0 && (
+                                        <p className="text-center text-zinc-300 dark:text-zinc-700 text-xs py-8 italic">
+                                            {lang === 'ko' ? '아직 댓글이 없습니다' : 'No comments yet'}
+                                        </p>
+                                    )}
+                                    {comments.map((c) => (
+                                        <div key={c.id} className="group p-4 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-bold">{c.nickname}</span>
+                                                    <span className="text-[10px] text-zinc-400">{c.time}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => deleteComment(c.firebaseKey)}
+                                                    className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-300 hover:text-red-400"
+                                                    title="Delete"
+                                                >
+                                                    <i data-lucide="x" className="w-3.5 h-3.5"></i>
+                                                </button>
+                                            </div>
+                                            <p className="text-[12px] text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-wrap">{c.text}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </section>
 
                         <footer className="pt-20 pb-12 border-t border-zinc-100 dark:border-zinc-800 text-center">
                             <p className="text-[11px] text-zinc-400 font-bold uppercase tracking-[0.2em] italic leading-relaxed">
